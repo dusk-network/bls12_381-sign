@@ -1,9 +1,11 @@
 [package]
-name = "placeholder"
+name = "bls12-381-sig"
 version = "0.1.0"
 authors = ["Jules de Smit <julesdesmit@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+dusk-bls12_381 = { git = "https://github.com/dusk-network/bls12_381", tag = "v0.1.4" }
+rand = "0.7"
+blake2 = "0.9"
+thiserror = "1.0"
