@@ -4,7 +4,7 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use bls12_381_sig::{PublicKey, SecretKey, APK};
+use dusk_bls12_381_sign::{PublicKey, SecretKey, APK};
 use rand::RngCore;
 
 #[test]
