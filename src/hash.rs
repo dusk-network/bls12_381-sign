@@ -9,14 +9,15 @@
 use crate::PublicKey;
 use blake2::{Blake2b, Digest};
 use dusk_bls12_381::{G1Affine, Scalar as BlsScalar};
+use std::convert::TryInto;
 
 /// h0 is the hash-to-curve-point function.
 /// Hₒ : M -> Gₒ
 pub fn h0(msg: &[u8]) -> G1Affine {
     let hash = Blake2b::digest(msg);
-    let mut arr = [0u8; 64];
-    arr.copy_from_slice(&hash[..]);
-    let scalar = BlsScalar::from_bytes_wide(&arr);
+    let scalar = BlsScalar::from_bytes_wide(
+        hash.as_slice().try_into().expect("Wrong length"),
+    );
 
     // Now multiply this message by the G1 base point,
     // to generate a G1Affine.
@@ -26,11 +27,10 @@ pub fn h0(msg: &[u8]) -> G1Affine {
 
 /// h1 is the hashing function used in the modified BLS
 /// multi-signature construction.
-/// H₁: G₂ -> R
+/// H₁ : G₂ -> R
 pub fn h1(pk: &PublicKey) -> BlsScalar {
     let hash = Blake2b::digest(&pk.to_bytes());
-    let mut arr = [0u8; 64];
-    arr.copy_from_slice(&hash[..]);
-    let scalar = BlsScalar::from_bytes_wide(&arr);
-    scalar
+    BlsScalar::from_bytes_wide(
+        hash.as_slice().try_into().expect("Wrong length"),
+    )
 }

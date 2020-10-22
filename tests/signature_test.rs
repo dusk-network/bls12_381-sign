@@ -8,46 +8,46 @@ use bls12_381_sig::{PublicKey, SecretKey, APK};
 use rand::RngCore;
 
 #[test]
-fn unsafe_sign_verify() {
+fn vulnerable_sign_verify() {
     let sk = SecretKey::new(&mut rand::thread_rng());
     let msg = random_message();
 
     // Sign and verify.
-    let sig = sk.unsafe_sign(&msg);
-    let pk = PublicKey::new(&sk);
+    let sig = sk.sign_vulnerable(&msg);
+    let pk = PublicKey::from(&sk);
     assert!(pk.verify(&sig, &msg).is_ok());
 }
 
 #[test]
-fn unsafe_sign_verify_incorrect_message() {
+fn vulnerable_sign_verify_incorrect_message() {
     let sk = SecretKey::new(&mut rand::thread_rng());
     let msg = random_message();
 
-    let sig = sk.unsafe_sign(&msg);
+    let sig = sk.sign_vulnerable(&msg);
 
     // Verify with a different message.
     let msg = random_message();
-    let pk = PublicKey::new(&sk);
+    let pk = PublicKey::from(&sk);
     assert!(pk.verify(&sig, &msg).is_err());
 }
 
 #[test]
-fn unsafe_sign_verify_incorrect_pk() {
+fn vulnerable_sign_verify_incorrect_pk() {
     let sk = SecretKey::new(&mut rand::thread_rng());
     let msg = random_message();
 
-    let sig = sk.unsafe_sign(&msg);
+    let sig = sk.sign_vulnerable(&msg);
 
     // Verify with a different public key.
     let sk = SecretKey::new(&mut rand::thread_rng());
-    let pk = PublicKey::new(&sk);
+    let pk = PublicKey::from(&sk);
     assert!(pk.verify(&sig, &msg).is_err());
 }
 
 #[test]
-fn safe_sign_verify() {
+fn sign_verify() {
     let sk = SecretKey::new(&mut rand::thread_rng());
-    let pk = PublicKey::new(&sk);
+    let pk = PublicKey::from(&sk);
     let msg = random_message();
 
     let sig = sk.sign(&pk, &msg);
@@ -56,77 +56,77 @@ fn safe_sign_verify() {
     assert!(pk.verify(&sig, &msg).is_err());
 
     // Verification with the aggregated version should work.
-    let apk = APK::new(&pk);
+    let apk = APK::from(&pk);
     assert!(apk.verify(&sig, &msg).is_ok());
 }
 
 #[test]
-fn safe_sign_verify_incorrect_message() {
+fn sign_verify_incorrect_message() {
     let sk = SecretKey::new(&mut rand::thread_rng());
-    let pk = PublicKey::new(&sk);
+    let pk = PublicKey::from(&sk);
     let msg = random_message();
 
     let sig = sk.sign(&pk, &msg);
 
     // Verification with a different message should fail.
-    let apk = APK::new(&pk);
+    let apk = APK::from(&pk);
     let msg = random_message();
     assert!(apk.verify(&sig, &msg).is_err());
 }
 
 #[test]
-fn safe_sign_verify_incorrect_apk() {
+fn sign_verify_incorrect_apk() {
     let sk = SecretKey::new(&mut rand::thread_rng());
-    let pk = PublicKey::new(&sk);
+    let pk = PublicKey::from(&sk);
     let msg = random_message();
 
     let sig = sk.sign(&pk, &msg);
 
     // Verification with another APK should fail.
     let sk = SecretKey::new(&mut rand::thread_rng());
-    let pk = PublicKey::new(&sk);
-    let apk = APK::new(&pk);
+    let pk = PublicKey::from(&sk);
+    let apk = APK::from(&pk);
     assert!(apk.verify(&sig, &msg).is_err());
 }
 
 #[test]
-fn safe_sign_verify_aggregated() {
+fn sign_verify_aggregated() {
     let sk = SecretKey::new(&mut rand::thread_rng());
-    let pk = PublicKey::new(&sk);
+    let pk = PublicKey::from(&sk);
     let msg = random_message();
 
     let mut agg_sig = sk.sign(&pk, &msg);
 
-    let mut apk = APK::new(&pk);
+    let mut apk = APK::from(&pk);
 
-    (0..10).for_each(|_| {
+    for _ in 0..10 {
         let sk = SecretKey::new(&mut rand::thread_rng());
-        let pk = PublicKey::new(&sk);
+        let pk = PublicKey::from(&sk);
         let sig = sk.sign(&pk, &msg);
         agg_sig = agg_sig.aggregate(&[sig]);
-        apk.add(&[pk]);
-    });
+        apk.aggregate(&[pk]);
+    }
 
     assert!(apk.verify(&agg_sig, &msg).is_ok());
 }
 
 #[test]
-fn safe_sign_verify_aggregated_incorrect_message() {
+fn sign_verify_aggregated_incorrect_message() {
     let sk = SecretKey::new(&mut rand::thread_rng());
-    let pk = PublicKey::new(&sk);
+    let pk = PublicKey::from(&sk);
     let msg = random_message();
 
     let mut agg_sig = sk.sign(&pk, &msg);
 
-    let mut apk = APK::new(&pk);
+    let mut apk = APK::from(&pk);
 
-    (0..10).for_each(|_| {
+    for _ in 0..10 {
         let sk = SecretKey::new(&mut rand::thread_rng());
-        let pk = PublicKey::new(&sk);
+        let pk = PublicKey::from(&sk);
         let sig = sk.sign(&pk, &msg);
         agg_sig = agg_sig.aggregate(&[sig]);
-        apk.add(&[pk]);
-    });
+        apk.aggregate(&[pk]);
+    }
 
     // Verification should fail with a different message.
     let msg = random_message();
@@ -134,25 +134,25 @@ fn safe_sign_verify_aggregated_incorrect_message() {
 }
 
 #[test]
-fn safe_sign_verify_aggregated_incorrect_apk() {
+fn sign_verify_aggregated_incorrect_apk() {
     let sk = SecretKey::new(&mut rand::thread_rng());
-    let pk = PublicKey::new(&sk);
+    let pk = PublicKey::from(&sk);
     let msg = random_message();
 
     let mut agg_sig = sk.sign(&pk, &msg);
 
-    let mut apk = APK::new(&pk);
+    let mut apk = APK::from(&pk);
 
-    (0..10).for_each(|_| {
+    for _ in 0..10 {
         let sk = SecretKey::new(&mut rand::thread_rng());
-        let pk = PublicKey::new(&sk);
+        let pk = PublicKey::from(&sk);
         let sig = sk.sign(&pk, &msg);
         agg_sig = agg_sig.aggregate(&[sig]);
-        apk.add(&[pk]);
-    });
+        apk.aggregate(&[pk]);
+    }
 
     // Verification with the wrong APK should fail.
-    let apk = APK::new(&pk);
+    let apk = APK::from(&pk);
     assert!(apk.verify(&agg_sig, &msg).is_err());
 }
 

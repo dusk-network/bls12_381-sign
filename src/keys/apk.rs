@@ -12,24 +12,21 @@ use dusk_bls12_381::G2Projective;
 /// resistant manner, by using the hash function defined
 /// in the modified version of BLS.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
-pub struct APK {
-    pk: PublicKey,
+pub struct APK(PublicKey);
+
+impl From<&PublicKey> for APK {
+    fn from(pk: &PublicKey) -> Self {
+        let t = h1(pk);
+        let gx = pk.0 * t;
+        Self(PublicKey(gx.into()))
+    }
 }
 
 impl APK {
-    /// Create a new [`APK`] from a [`PublicKey`].
-    pub fn new(pk: &PublicKey) -> Self {
-        let t = h1(pk);
-        let gx = pk.gx * t;
-        Self {
-            pk: PublicKey { gx: gx.into() },
-        }
-    }
-
     /// Aggregate a set of [`PublicKey`] into the [`APK`].
-    pub fn add(&mut self, pks: &[PublicKey]) {
-        pks.iter().for_each(|pk| {
-            self.pk.gx = (self.pk.gx + G2Projective::from(pk.pk_t())).into();
+    pub fn aggregate(&mut self, pks: &[PublicKey]) {
+        (self.0).0 = pks.iter().fold((self.0).0, |acc, pk| {
+            (acc + G2Projective::from(pk.pk_t())).into()
         });
     }
 
@@ -38,6 +35,6 @@ impl APK {
     /// Currently, this function only supports batched signature verification
     /// for the same message. Distinct messages are not supported.
     pub fn verify(&self, sig: &Signature, msg: &[u8]) -> Result<(), Error> {
-        self.pk.verify(sig, msg)
+        self.0.verify(sig, msg)
     }
 }

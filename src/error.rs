@@ -6,8 +6,8 @@
 
 use thiserror::Error;
 
-#[derive(Error, Debug)]
 /// Standard error for the interface
+#[derive(Error, Debug)]
 pub enum Error {
     /// Cryptographic invalidity
     #[error("Signature verification failed")]
