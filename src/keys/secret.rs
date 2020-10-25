@@ -4,7 +4,7 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::{h0, h1, PublicKey, Signature};
+use crate::{h0, h1, Error, PublicKey, Signature};
 use dusk_bls12_381::Scalar as BlsScalar;
 use rand::{CryptoRng, Rng};
 
@@ -42,5 +42,17 @@ impl SecretKey {
         let t = h1(pk);
         sig.0 = (sig.0 * t).into();
         sig
+    }
+
+    /// Return the byte representation of the [`SecretKey`]
+    pub fn to_bytes(&self) -> [u8; 32] {
+        self.0.to_bytes()
+    }
+
+    /// Attempt to create a [`SecretKey`] from a BLS scalar byte representation.
+    pub fn from_bytes(bytes: &[u8; 32]) -> Result<Self, Error> {
+        let x = Option::from(BlsScalar::from_bytes(bytes))
+            .ok_or(Error::InvalidBytes)?;
+        Ok(Self(x))
     }
 }

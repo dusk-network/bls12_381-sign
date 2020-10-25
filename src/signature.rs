@@ -4,6 +4,7 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
+use crate::Error;
 use dusk_bls12_381::{G1Affine, G1Projective};
 
 /// A BLS signature.
@@ -18,5 +19,18 @@ impl Signature {
                 (acc + G1Projective::from(sig.0)).into()
             }),
         )
+    }
+
+    /// Return the compressed byte representation of the [`Signature`].
+    pub fn to_bytes(&self) -> [u8; 48] {
+        self.0.to_compressed()
+    }
+
+    /// Attempt to create a [`Signature`] from a G1Affine compressed
+    /// byte representation.
+    pub fn from_bytes(bytes: &[u8; 48]) -> Result<Self, Error> {
+        let s = Option::from(G1Affine::from_compressed(bytes))
+            .ok_or(Error::InvalidBytes)?;
+        Ok(Self(s))
     }
 }

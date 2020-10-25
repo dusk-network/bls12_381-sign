@@ -51,4 +51,11 @@ impl PublicKey {
     pub fn to_bytes(&self) -> [u8; 96] {
         self.0.to_compressed()
     }
+
+    /// Attempt to create a [`PublicKey`] from a G2Affine byte representation.
+    pub fn from_bytes(bytes: &[u8; 96]) -> Result<Self, Error> {
+        let gx = Option::from(G2Affine::from_compressed(bytes))
+            .ok_or(Error::InvalidBytes)?;
+        Ok(Self(gx))
+    }
 }

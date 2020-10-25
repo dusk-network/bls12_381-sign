@@ -12,4 +12,7 @@ pub enum Error {
     /// Cryptographic invalidity
     #[error("Signature verification failed")]
     InvalidSignature,
+    /// Invalid byte representation
+    #[error("Wrong encoding")]
+    InvalidBytes,
 }
