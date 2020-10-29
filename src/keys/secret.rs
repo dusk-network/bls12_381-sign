@@ -45,14 +45,21 @@ impl SecretKey {
     }
 
     /// Return the byte representation of the [`SecretKey`]
-    pub fn to_bytes(&self) -> [u8; 32] {
+    pub fn to_bytes(&self) -> [u8; SecretKey::serialized_size()] {
         self.0.to_bytes()
     }
 
     /// Attempt to create a [`SecretKey`] from a BLS scalar byte representation.
-    pub fn from_bytes(bytes: &[u8; 32]) -> Result<Self, Error> {
+    pub fn from_bytes(
+        bytes: &[u8; SecretKey::serialized_size()],
+    ) -> Result<Self, Error> {
         let x = Option::from(BlsScalar::from_bytes(bytes))
             .ok_or(Error::InvalidBytes)?;
         Ok(Self(x))
+    }
+
+    /// Return the amount of bytes needed to serialize a [`SecretKey`].
+    pub const fn serialized_size() -> usize {
+        32
     }
 }

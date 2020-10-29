@@ -22,15 +22,22 @@ impl Signature {
     }
 
     /// Return the compressed byte representation of the [`Signature`].
-    pub fn to_bytes(&self) -> [u8; 48] {
+    pub fn to_bytes(&self) -> [u8; Signature::serialized_size()] {
         self.0.to_compressed()
     }
 
     /// Attempt to create a [`Signature`] from a G1Affine compressed
     /// byte representation.
-    pub fn from_bytes(bytes: &[u8; 48]) -> Result<Self, Error> {
+    pub fn from_bytes(
+        bytes: &[u8; Signature::serialized_size()],
+    ) -> Result<Self, Error> {
         let s = Option::from(G1Affine::from_compressed(bytes))
             .ok_or(Error::InvalidBytes)?;
         Ok(Self(s))
+    }
+
+    /// Return the amount of bytes needed to serialize a [`Signature`].
+    pub const fn serialized_size() -> usize {
+        48
     }
 }
