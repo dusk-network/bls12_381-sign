@@ -37,4 +37,21 @@ impl APK {
     pub fn verify(&self, sig: &Signature, msg: &[u8]) -> Result<(), Error> {
         self.0.verify(sig, msg)
     }
+
+    /// Return the compressed byte representation of the [`APK`].
+    pub fn to_bytes(&self) -> [u8; APK::serialized_size()] {
+        self.0.to_bytes()
+    }
+
+    /// Attempt to create a [`APK`] from a G2Affine byte representation.
+    pub fn from_bytes(
+        bytes: &[u8; APK::serialized_size()],
+    ) -> Result<Self, Error> {
+        Ok(APK(PublicKey::from_bytes(bytes)?))
+    }
+
+    /// Return the amount of bytes needed to serialize a [`SecretKey`].
+    pub const fn serialized_size() -> usize {
+        96
+    }
 }

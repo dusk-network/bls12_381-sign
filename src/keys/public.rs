@@ -48,7 +48,21 @@ impl PublicKey {
     }
 
     /// Return the compressed byte representation of the [`PublicKey`].
-    pub fn to_bytes(&self) -> [u8; 96] {
+    pub fn to_bytes(&self) -> [u8; PublicKey::serialized_size()] {
         self.0.to_compressed()
+    }
+
+    /// Attempt to create a [`PublicKey`] from a G2Affine byte representation.
+    pub fn from_bytes(
+        bytes: &[u8; PublicKey::serialized_size()],
+    ) -> Result<Self, Error> {
+        Option::from(G2Affine::from_compressed(bytes))
+            .map(Self)
+            .ok_or(Error::InvalidBytes)
+    }
+
+    /// Return the amount of bytes needed to serialize a [`PublicKey`].
+    pub const fn serialized_size() -> usize {
+        96
     }
 }

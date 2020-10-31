@@ -8,9 +8,11 @@
 //! Reference paper: https://crypto.stanford.edu/~dabo/pubs/papers/BLSmultisig.html
 
 mod error;
+mod ffi;
 mod hash;
 mod keys;
 mod signature;
+mod tests;
 
 pub use error::Error;
 pub use hash::{h0, h1};
