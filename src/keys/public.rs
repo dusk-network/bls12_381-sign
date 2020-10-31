@@ -56,9 +56,9 @@ impl PublicKey {
     pub fn from_bytes(
         bytes: &[u8; PublicKey::serialized_size()],
     ) -> Result<Self, Error> {
-        let gx = Option::from(G2Affine::from_compressed(bytes))
-            .ok_or(Error::InvalidBytes)?;
-        Ok(Self(gx))
+        Option::from(G2Affine::from_compressed(bytes))
+            .map(Self)
+            .ok_or(Error::InvalidBytes)
     }
 
     /// Return the amount of bytes needed to serialize a [`PublicKey`].

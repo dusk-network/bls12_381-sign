@@ -31,9 +31,9 @@ impl Signature {
     pub fn from_bytes(
         bytes: &[u8; Signature::serialized_size()],
     ) -> Result<Self, Error> {
-        let s = Option::from(G1Affine::from_compressed(bytes))
-            .ok_or(Error::InvalidBytes)?;
-        Ok(Self(s))
+        Option::from(G1Affine::from_compressed(bytes))
+            .map(Self)
+            .ok_or(Error::InvalidBytes)
     }
 
     /// Return the amount of bytes needed to serialize a [`Signature`].

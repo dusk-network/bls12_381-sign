@@ -53,9 +53,9 @@ impl SecretKey {
     pub fn from_bytes(
         bytes: &[u8; SecretKey::serialized_size()],
     ) -> Result<Self, Error> {
-        let x = Option::from(BlsScalar::from_bytes(bytes))
-            .ok_or(Error::InvalidBytes)?;
-        Ok(Self(x))
+        Option::from(BlsScalar::from_bytes(bytes))
+            .map(Self)
+            .ok_or(Error::InvalidBytes)
     }
 
     /// Return the amount of bytes needed to serialize a [`SecretKey`].
