@@ -5,6 +5,7 @@ authors = ["Jules de Smit <julesdesmit@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+canonical = "0.4"
 dusk-bls12_381 = "0.1.4"
 rand = "0.7"
 blake2 = "0.9"
@@ -12,7 +13,7 @@ thiserror = "1.0"
 libc = "0.2"
 
 [lib]
-crate-type = ["staticlib"]
+crate-type = ["rlib"]
 
 [profile.release]
 panic = 'abort'
