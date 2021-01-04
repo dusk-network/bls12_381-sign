@@ -5,10 +5,15 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use crate::Error;
+#[cfg(feature = "canon")]
+use canonical::Canon;
+#[cfg(feature = "canon")]
+use canonical_derive::Canon;
 use dusk_bls12_381::{G1Affine, G1Projective};
 
 /// A BLS signature.
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "canon", derive(Canon))]
 pub struct Signature(pub(crate) G1Affine);
 
 impl Signature {

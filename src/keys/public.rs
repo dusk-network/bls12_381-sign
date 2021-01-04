@@ -5,6 +5,10 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use crate::{h0, h1, Error, SecretKey, Signature};
+#[cfg(feature = "canon")]
+use canonical::Canon;
+#[cfg(feature = "canon")]
+use canonical_derive::Canon;
 use dusk_bls12_381::G2Affine;
 
 /// A BLS public key, holding a BLS12-381 G2 element inside.
@@ -12,6 +16,7 @@ use dusk_bls12_381::G2Affine;
 /// by `g2` (the base point of the G2 group).
 /// Can be used for signature verification.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "canon", derive(Canon))]
 pub struct PublicKey(pub(crate) G2Affine);
 
 impl From<&SecretKey> for PublicKey {
@@ -28,6 +33,7 @@ impl From<&SecretKey> for PublicKey {
 impl PublicKey {
     /// Verify a [`Signature`] by comparing the results of the two pairing
     /// operations: e(sig, g_2) == e(Hₒ(m), pk).
+    #[cfg(feature = "std")]
     pub fn verify(&self, sig: &Signature, msg: &[u8]) -> Result<(), Error> {
         let h0m = h0(msg);
         let p1 = dusk_bls12_381::pairing(&sig.0, &G2Affine::generator());
@@ -41,6 +47,7 @@ impl PublicKey {
     }
 
     /// Return pk * t, where t is H_(pk).
+    #[cfg(feature = "std")]
     pub fn pk_t(&self) -> G2Affine {
         let t = h1(self);
         let gx = self.0 * t;

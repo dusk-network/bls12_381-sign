@@ -4,6 +4,7 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
+#![cfg(feature = "default")]
 use crate::{Error, PublicKey, SecretKey, Signature, APK};
 use libc::{c_int, c_uchar, size_t};
 use std::{ptr, slice};
@@ -34,7 +35,7 @@ macro_rules! unwrap_or_bail {
 
 #[no_mangle]
 pub unsafe extern "C" fn generate_keys(sk_ptr: *mut u8, pk_ptr: *mut u8) {
-    let sk = SecretKey::new(&mut rand::thread_rng());
+    let sk = SecretKey::new(&mut rand_core::OsRng);
     let pk = PublicKey::from(&sk);
 
     ptr::copy_nonoverlapping(&sk.to_bytes()[0] as *const u8, sk_ptr, SK_SIZE);

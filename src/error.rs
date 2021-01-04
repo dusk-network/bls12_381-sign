@@ -4,15 +4,21 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use thiserror::Error;
+#[cfg(feature = "std")]
+use std::fmt;
 
 /// Standard error for the interface
-#[derive(Error, Debug)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Error {
-    /// Cryptographic invalidity
-    #[error("Signature verification failed")]
-    InvalidSignature,
     /// Invalid byte representation
-    #[error("Wrong encoding")]
     InvalidBytes,
+    /// Cryptographic invalidity
+    InvalidSignature,
+}
+
+#[cfg(feature = "std")]
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "BLS Signature Error: {:?}", &self)
+    }
 }
