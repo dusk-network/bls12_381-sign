@@ -48,7 +48,6 @@ impl PublicKey {
     }
 
     /// Return pk * t, where t is H_(pk).
-    #[cfg(feature = "std")]
     pub fn pk_t(&self) -> G2Affine {
         let t = h1(self);
         let gx = self.0 * t;

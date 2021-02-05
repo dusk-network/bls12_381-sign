@@ -4,7 +4,7 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-#![cfg(feature = "default")]
+#![cfg(feature = "std")]
 use crate::{Error, PublicKey, SecretKey, Signature, APK};
 use libc::{c_int, c_uchar, size_t};
 use std::{ptr, slice};

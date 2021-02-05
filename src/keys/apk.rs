@@ -29,7 +29,6 @@ impl From<&PublicKey> for APK {
 
 impl APK {
     /// Aggregate a set of [`PublicKey`] into the [`APK`].
-    #[cfg(feature = "std")]
     pub fn aggregate(&mut self, pks: &[PublicKey]) {
         (self.0).0 = pks.iter().fold((self.0).0, |acc, pk| {
             (acc + G2Projective::from(pk.pk_t())).into()
