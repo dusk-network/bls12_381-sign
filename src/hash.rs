@@ -8,8 +8,8 @@
 
 use crate::PublicKey;
 use blake2::{Blake2b, Digest};
-use dusk_bls12_381::{G1Affine, Scalar as BlsScalar};
-use std::convert::TryInto;
+use core::convert::TryInto;
+use dusk_bls12_381::{BlsScalar, G1Affine};
 
 /// h0 is the hash-to-curve-point function.
 /// Hₒ : M -> Gₒ

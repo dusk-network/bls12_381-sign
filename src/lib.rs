@@ -4,6 +4,8 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
 //! Implementation of BLS signatures on the BLS12-381 curve.
 //! Reference paper: https://crypto.stanford.edu/~dabo/pubs/papers/BLSmultisig.html
 

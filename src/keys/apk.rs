@@ -5,6 +5,10 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use crate::{h1, Error, PublicKey, Signature};
+#[cfg(feature = "canon")]
+use canonical::Canon;
+#[cfg(feature = "canon")]
+use canonical_derive::Canon;
 use dusk_bls12_381::G2Projective;
 
 /// Aggregated form of a BLS public key.
@@ -12,6 +16,7 @@ use dusk_bls12_381::G2Projective;
 /// resistant manner, by using the hash function defined
 /// in the modified version of BLS.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "canon", derive(Canon))]
 pub struct APK(PublicKey);
 
 impl From<&PublicKey> for APK {
@@ -34,6 +39,7 @@ impl APK {
     /// Wrapper function for PublicKey.verify.
     /// Currently, this function only supports batched signature verification
     /// for the same message. Distinct messages are not supported.
+    #[cfg(feature = "std")]
     pub fn verify(&self, sig: &Signature, msg: &[u8]) -> Result<(), Error> {
         self.0.verify(sig, msg)
     }

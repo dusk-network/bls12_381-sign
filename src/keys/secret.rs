@@ -5,8 +5,9 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use crate::{h0, h1, Error, PublicKey, Signature};
-use dusk_bls12_381::Scalar as BlsScalar;
-use rand::{CryptoRng, Rng};
+use dusk_bls12_381::BlsScalar;
+use dusk_bytes::Serializable;
+use rand_core::{CryptoRng, RngCore};
 
 /// A BLS secret key, holding a BLS12-381 scalar inside.
 /// Can be used for signing messages.
@@ -17,7 +18,7 @@ impl SecretKey {
     /// Generates a new random [`SecretKey`].
     pub fn new<T>(rand: &mut T) -> Self
     where
-        T: Rng + CryptoRng,
+        T: RngCore + CryptoRng,
     {
         Self(BlsScalar::random(rand))
     }
@@ -53,9 +54,9 @@ impl SecretKey {
     pub fn from_bytes(
         bytes: &[u8; SecretKey::serialized_size()],
     ) -> Result<Self, Error> {
-        Option::from(BlsScalar::from_bytes(bytes))
-            .map(Self)
-            .ok_or(Error::InvalidBytes)
+        Ok(Self(
+            BlsScalar::from_bytes(bytes).or(Err(Error::InvalidBytes))?,
+        ))
     }
 
     /// Return the amount of bytes needed to serialize a [`SecretKey`].

@@ -5,10 +5,16 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use crate::Error;
+#[cfg(feature = "canon")]
+use canonical::Canon;
+#[cfg(feature = "canon")]
+use canonical_derive::Canon;
 use dusk_bls12_381::{G1Affine, G1Projective};
+use dusk_bytes::Serializable;
 
 /// A BLS signature.
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "canon", derive(Canon))]
 pub struct Signature(pub(crate) G1Affine);
 
 impl Signature {
@@ -23,7 +29,7 @@ impl Signature {
 
     /// Return the compressed byte representation of the [`Signature`].
     pub fn to_bytes(&self) -> [u8; Signature::serialized_size()] {
-        self.0.to_compressed()
+        self.0.to_bytes()
     }
 
     /// Attempt to create a [`Signature`] from a G1Affine compressed
@@ -31,9 +37,9 @@ impl Signature {
     pub fn from_bytes(
         bytes: &[u8; Signature::serialized_size()],
     ) -> Result<Self, Error> {
-        Option::from(G1Affine::from_compressed(bytes))
-            .map(Self)
-            .ok_or(Error::InvalidBytes)
+        Ok(Self(
+            G1Affine::from_bytes(bytes).or(Err(Error::InvalidBytes))?,
+        ))
     }
 
     /// Return the amount of bytes needed to serialize a [`Signature`].
