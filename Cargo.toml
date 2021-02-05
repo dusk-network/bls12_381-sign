@@ -5,11 +5,12 @@ authors = ["Jules de Smit <julesdesmit@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-canonical = { version = "0.4", optional = true }
-canonical_derive = {version = "0.4", optional = true}
-dusk-bls12_381 = { git = "https://github.com/dusk-network/bls12_381", branch = "canon-groups", default-features = false }
+canonical = { version = "0.5", optional = true }
+canonical_derive = {version = "0.5", optional = true}
+dusk-bls12_381 = { git = "https://github.com/dusk-network/bls12_381", tag = "v0.6.0" }
+dusk-bytes = "0.1"
 rand = "0.7"
-rand_core = "0.6"
+rand_core = "0.5"
 blake2 = "0.9"
 thiserror = "1.0"
 libc = "0.2"

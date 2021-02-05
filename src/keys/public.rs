@@ -10,6 +10,7 @@ use canonical::Canon;
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
 use dusk_bls12_381::G2Affine;
+use dusk_bytes::Serializable;
 
 /// A BLS public key, holding a BLS12-381 G2 element inside.
 /// The G2 element is constructed by multiplying a [`SecretKey`]
@@ -56,16 +57,16 @@ impl PublicKey {
 
     /// Return the compressed byte representation of the [`PublicKey`].
     pub fn to_bytes(&self) -> [u8; PublicKey::serialized_size()] {
-        self.0.to_compressed()
+        self.0.to_bytes()
     }
 
     /// Attempt to create a [`PublicKey`] from a G2Affine byte representation.
     pub fn from_bytes(
         bytes: &[u8; PublicKey::serialized_size()],
     ) -> Result<Self, Error> {
-        Option::from(G2Affine::from_compressed(bytes))
-            .map(Self)
-            .ok_or(Error::InvalidBytes)
+        Ok(Self(
+            G2Affine::from_bytes(bytes).or(Err(Error::InvalidBytes))?,
+        ))
     }
 
     /// Return the amount of bytes needed to serialize a [`PublicKey`].
