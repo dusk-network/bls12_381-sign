@@ -4,7 +4,9 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::{h0, h1, Error, SecretKey, Signature};
+#[cfg(feature = "std")]
+use crate::{h0, h1};
+use crate::{Error, SecretKey, Signature};
 #[cfg(feature = "canon")]
 use canonical::Canon;
 #[cfg(feature = "canon")]
@@ -48,6 +50,7 @@ impl PublicKey {
     }
 
     /// Return pk * t, where t is H_(pk).
+    #[cfg(feature = "std")]
     pub fn pk_t(&self) -> G2Affine {
         let t = h1(self);
         let gx = self.0 * t;

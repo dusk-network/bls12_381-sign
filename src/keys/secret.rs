@@ -4,7 +4,9 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::{h0, h1, Error, PublicKey, Signature};
+#[cfg(feature = "std")]
+use crate::{h0, h1};
+use crate::{Error, PublicKey, Signature};
 use dusk_bls12_381::BlsScalar;
 use dusk_bytes::Serializable;
 use rand_core::{CryptoRng, RngCore};
@@ -25,6 +27,7 @@ impl SecretKey {
 
     /// Sign a message, producing a [`Signature`].
     /// The signature produced is vulnerable to a rogue-key attack.
+    #[cfg(feature = "std")]
     pub fn sign_vulnerable(&self, msg: &[u8]) -> Signature {
         // Hash message
         let h = h0(msg);
@@ -35,6 +38,7 @@ impl SecretKey {
     }
 
     /// Sign a message in a rogue-key attack resistant way.
+    #[cfg(feature = "std")]
     pub fn sign(&self, pk: &PublicKey, msg: &[u8]) -> Signature {
         let mut sig = self.sign_vulnerable(msg);
 
