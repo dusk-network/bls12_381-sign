@@ -4,11 +4,14 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::{h1, Error, PublicKey, Signature};
+#[cfg(feature = "std")]
+use crate::{h1, Signature};
+use crate::{Error, PublicKey};
 #[cfg(feature = "canon")]
 use canonical::Canon;
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
+#[cfg(feature = "std")]
 use dusk_bls12_381::G2Projective;
 
 /// Aggregated form of a BLS public key.
@@ -19,6 +22,7 @@ use dusk_bls12_381::G2Projective;
 #[cfg_attr(feature = "canon", derive(Canon))]
 pub struct APK(PublicKey);
 
+#[cfg(feature = "std")]
 impl From<&PublicKey> for APK {
     fn from(pk: &PublicKey) -> Self {
         let t = h1(pk);
@@ -29,6 +33,7 @@ impl From<&PublicKey> for APK {
 
 impl APK {
     /// Aggregate a set of [`PublicKey`] into the [`APK`].
+    #[cfg(feature = "std")]
     pub fn aggregate(&mut self, pks: &[PublicKey]) {
         (self.0).0 = pks.iter().fold((self.0).0, |acc, pk| {
             (acc + G2Projective::from(pk.pk_t())).into()
