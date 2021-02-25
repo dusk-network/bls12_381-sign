@@ -5,8 +5,8 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 #[cfg(feature = "std")]
-use crate::{h0, h1};
-use crate::{Error, SecretKey, Signature};
+use crate::{h0, h1, Signature};
+use crate::{Error, SecretKey};
 #[cfg(feature = "canon")]
 use canonical::Canon;
 #[cfg(feature = "canon")]

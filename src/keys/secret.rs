@@ -4,9 +4,9 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
+use crate::Error;
 #[cfg(feature = "std")]
-use crate::{h0, h1};
-use crate::{Error, PublicKey, Signature};
+use crate::{h0, h1, PublicKey, Signature};
 use dusk_bls12_381::BlsScalar;
 use dusk_bytes::Serializable;
 use rand_core::{CryptoRng, RngCore};
