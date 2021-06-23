@@ -22,3 +22,13 @@ pub use error::Error;
 pub use hash::{h0, h1};
 pub use keys::{apk::APK, public::PublicKey, secret::SecretKey};
 pub use signature::Signature;
+
+#[cfg(not(feature = "std"))]
+use core::panic::PanicInfo;
+
+/// This function is called on panic.
+#[cfg(not(feature = "std"))]
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    loop {}
+}
