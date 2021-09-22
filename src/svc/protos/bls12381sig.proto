@@ -1,0 +1,42 @@
+syntax = "proto3";
+package bls12381sig;
+
+import "google/protobuf/empty.proto";
+
+service BLS12381sig {
+  rpc GenerateKeys(google.protobuf.Empty) returns (GenerateKeysResponse);
+  rpc Sign(SignRequest) returns (SignResponse);
+}
+
+message GenerateKeysResponse {
+  bytes PrivateKey = 1;
+  bytes PublicKey = 2;
+}
+
+message SignRequest {
+  bytes PrivateKey = 1;
+  bytes PublicKey = 2;
+  bytes Message = 3;
+}
+
+message SignSuccessResponse {
+  bytes Signature = 1;
+}
+
+message SignErrorResponse {
+  SignError Error = 1;
+}
+
+message SignResponse {
+  oneof response {
+    SignSuccessResponse Signature = 1;
+    SignErrorResponse Error = 2;
+  }
+}
+
+enum SignError {
+  BLS_INVALID_BYTES = 0;
+  BLS_VERIFICATION_FAILED = 1;
+  UNKNOWN = 2;
+}
+
