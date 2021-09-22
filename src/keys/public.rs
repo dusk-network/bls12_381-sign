@@ -8,7 +8,7 @@
 use crate::{h0, h1, Signature};
 use crate::{Error, SecretKey};
 #[cfg(feature = "canon")]
-use canonical::Canon;
+// use canonical::Canon;
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
 use dusk_bls12_381::G2Affine;

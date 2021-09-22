@@ -6,7 +6,7 @@
 
 use crate::Error;
 #[cfg(feature = "canon")]
-use canonical::Canon;
+// use canonical::Canon;
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
 use dusk_bls12_381::{G1Affine, G1Projective};
