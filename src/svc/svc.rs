@@ -13,10 +13,9 @@ use futures::TryFutureExt;
 use tokio::net::UnixListener;
 use tonic::{transport::Server, IntoRequest, Request, Response, Status};
 
-use crate::signer::sign_response::Sig;
 use dusk_bls12_381_sign::{Error, PublicKey, SecretKey, Signature, APK};
 use signer::{
-    sign_response,
+    sign_response::Sig,
     signer_server::{Signer, SignerServer},
     AggregatePkRequest, AggregateResponse, AggregateSigRequest,
     CreateApkRequest, CreateApkResponse, GenerateKeysResponse, SignRequest,
@@ -75,7 +74,7 @@ impl Signer for MySign {
 
         let res = sk.sign(&pk, &msg).to_bytes();
         Ok(Response::new(SignResponse {
-            sig: Option::Some(sign_response::Sig::Signature(res.to_vec())),
+            sig: Option::Some(Sig::Signature(res.to_vec())),
         }))
     }
 
