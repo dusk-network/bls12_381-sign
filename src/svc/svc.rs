@@ -61,7 +61,11 @@ impl Signer for MySign {
             return Err(Status::invalid_argument("error decoding secret key"));
         }
         let sk = sk.unwrap();
-        let sk = SecretKey::from_bytes(sk).unwrap();
+        let sk = SecretKey::from_bytes(sk);
+        if sk.is_err() {
+            return Err(Status::invalid_argument("error decoding secret key"));
+        }
+        let sk = sk.unwrap();
         let pk = <&[u8; PublicKey::serialized_size()]>::try_from(
             req.public_key.as_slice(),
         );
@@ -69,7 +73,11 @@ impl Signer for MySign {
             return Err(Status::invalid_argument("error decoding public key"));
         }
         let pk = pk.unwrap();
-        let pk = PublicKey::from_bytes(pk).unwrap();
+        let pk = PublicKey::from_bytes(pk);
+        if pk.is_err() {
+            return Err(Status::invalid_argument("error decoding public key"));
+        }
+        let pk = pk.unwrap();
         let msg = req.message;
 
         let res = sk.sign(&pk, &msg).to_bytes();
