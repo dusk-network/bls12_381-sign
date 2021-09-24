@@ -14,7 +14,7 @@ use tokio::net::UnixListener;
 use tonic::{transport::Server, IntoRequest, Request, Response, Status};
 
 use crate::signer::sign_response;
-use bls12381sig::{Error, PublicKey, SecretKey, Signature, APK};
+use dusk_bls12_381_sign::{Error, PublicKey, SecretKey, Signature, APK};
 use signer::{
     signer_server::{Signer, SignerServer},
     AggregatePkRequest, AggregateResponse, AggregateSigRequest,
@@ -53,13 +53,13 @@ impl Signer for MySign {
         // access the request parameters
         let req: SignRequest = request.into_request().into_inner();
         // read in the secret key
-        let sk = req.private_key;
+        let sk = req.private_key.as_slice();
         // read in the public key
         let pk = req.public_key.as_slice();
         // read in the message to be signed
         let msg = req.message.as_slice();
 
-        let mut sk = SecretKey::from_bytes(sk.to_vec().)
+        let mut sk = SecretKey::from_bytes(sk);
         // let pk = PublicKey::from_bytes(req.public_key.to_bytes());
         // let msg = req.message;
         // sign the message
