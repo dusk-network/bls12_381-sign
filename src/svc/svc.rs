@@ -13,14 +13,16 @@ use futures::TryFutureExt;
 use tokio::net::UnixListener;
 use tonic::{transport::Server, IntoRequest, Request, Response, Status};
 
-use crate::signer::sign_response;
+use crate::signer::sign_response::Sig;
 use dusk_bls12_381_sign::{Error, PublicKey, SecretKey, Signature, APK};
 use signer::{
+    sign_response,
     signer_server::{Signer, SignerServer},
     AggregatePkRequest, AggregateResponse, AggregateSigRequest,
     CreateApkRequest, CreateApkResponse, GenerateKeysResponse, SignRequest,
     SignResponse, VerifyRequest, VerifyResponse,
 };
+use std::convert::{TryFrom, TryInto};
 
 mod signer;
 
@@ -53,29 +55,35 @@ impl Signer for MySign {
         // access the request parameters
         let req: SignRequest = request.into_request().into_inner();
         // read in the secret key
-        let sk = req.private_key.as_slice();
-        // read in the public key
-        let pk = req.public_key.as_slice();
-        // read in the message to be signed
-        let msg = req.message.as_slice();
+        let sk = <&[u8; SecretKey::serialized_size()]>::try_from(
+            req.private_key.as_slice(),
+        );
+        if sk.is_err() {
+            return Err(Status::invalid_argument("error decoding secret key"));
+        }
+        let sk = sk.unwrap();
+        let sk = SecretKey::from_bytes(sk).unwrap();
+        let pk = <&[u8; PublicKey::serialized_size()]>::try_from(
+            req.public_key.as_slice(),
+        );
+        if pk.is_err() {
+            return Err(Status::invalid_argument("error decoding public key"));
+        }
+        let pk = pk.unwrap();
+        let pk = PublicKey::from_bytes(pk).unwrap();
+        let msg = req.message;
 
-        let mut sk = SecretKey::from_bytes(sk);
-        // let pk = PublicKey::from_bytes(req.public_key.to_bytes());
-        // let msg = req.message;
-        // sign the message
-        // let sig = SignResponse {
-        // response: sk.sign(&pk, &msg).to_bytes(),
-        // };
-        Ok(Response::new(SignResponse { response: None }))
+        let res = sk.sign(&pk, &msg).to_bytes();
+        Ok(Response::new(SignResponse {
+            sig: Option::Some(sign_response::Sig::Signature(res.to_vec())),
+        }))
     }
 
     async fn verify(
         &self,
         request: Request<VerifyRequest>,
     ) -> Result<Response<VerifyResponse>, Status> {
-        // let req = request.into_request().into_inner();
-
-        let reply = VerifyResponse { response: None };
+        let reply = VerifyResponse { ver: None };
         Ok(Response::new(reply))
     }
 
@@ -83,7 +91,7 @@ impl Signer for MySign {
         &self,
         request: Request<CreateApkRequest>,
     ) -> Result<Response<CreateApkResponse>, Status> {
-        let reply = CreateApkResponse { response: None };
+        let reply = CreateApkResponse { apk: None };
         Ok(Response::new(reply))
     }
 
@@ -91,7 +99,7 @@ impl Signer for MySign {
         &self,
         request: Request<AggregatePkRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-        let reply = AggregateResponse { response: None };
+        let reply = AggregateResponse { agg: None };
         Ok(Response::new(reply))
     }
 
@@ -99,7 +107,7 @@ impl Signer for MySign {
         &self,
         request: Request<AggregateSigRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-        let reply = AggregateResponse { response: None };
+        let reply = AggregateResponse { agg: None };
         Ok(Response::new(reply))
     }
 }

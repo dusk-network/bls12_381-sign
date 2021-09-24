@@ -26,7 +26,7 @@ message SignRequest {
   bytes Message = 3;
 }
 message SignResponse {
-  oneof response {
+  oneof sig {
     bytes Signature = 1;
     Error Error = 2;
   }
@@ -37,7 +37,7 @@ message VerifyRequest {
   bytes Message = 2;
 }
 message VerifyResponse {
-  oneof response {
+  oneof ver {
     bool Valid = 1;
     Error Error = 2;
   }
@@ -47,7 +47,7 @@ message CreateAPKRequest {
   bytes PublicKey = 1;
 }
 message CreateAPKResponse {
-  oneof response {
+  oneof apk {
     bytes APK = 1;
     Error Error = 2;
   }
@@ -58,7 +58,7 @@ message AggregatePKRequest {
   repeated bytes Keys = 2;
 }
 message AggregateResponse {
-  oneof response {
+  oneof agg {
     bytes Code = 1;
     Error Error = 2;
   }

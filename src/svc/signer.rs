@@ -16,13 +16,13 @@ pub struct SignRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SignResponse {
-    #[prost(oneof = "sign_response::Response", tags = "1, 2")]
-    pub response: ::core::option::Option<sign_response::Response>,
+    #[prost(oneof = "sign_response::Sig", tags = "1, 2")]
+    pub sig: ::core::option::Option<sign_response::Sig>,
 }
 /// Nested message and enum types in `SignResponse`.
 pub mod sign_response {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Response {
+    pub enum Sig {
         #[prost(bytes, tag = "1")]
         Signature(::prost::alloc::vec::Vec<u8>),
         #[prost(enumeration = "super::Error", tag = "2")]
@@ -38,13 +38,13 @@ pub struct VerifyRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct VerifyResponse {
-    #[prost(oneof = "verify_response::Response", tags = "1, 2")]
-    pub response: ::core::option::Option<verify_response::Response>,
+    #[prost(oneof = "verify_response::Ver", tags = "1, 2")]
+    pub ver: ::core::option::Option<verify_response::Ver>,
 }
 /// Nested message and enum types in `VerifyResponse`.
 pub mod verify_response {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Response {
+    pub enum Ver {
         #[prost(bool, tag = "1")]
         Valid(bool),
         #[prost(enumeration = "super::Error", tag = "2")]
@@ -58,13 +58,13 @@ pub struct CreateApkRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateApkResponse {
-    #[prost(oneof = "create_apk_response::Response", tags = "1, 2")]
-    pub response: ::core::option::Option<create_apk_response::Response>,
+    #[prost(oneof = "create_apk_response::Apk", tags = "1, 2")]
+    pub apk: ::core::option::Option<create_apk_response::Apk>,
 }
 /// Nested message and enum types in `CreateAPKResponse`.
 pub mod create_apk_response {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Response {
+    pub enum Apk {
         #[prost(bytes, tag = "1")]
         Apk(::prost::alloc::vec::Vec<u8>),
         #[prost(enumeration = "super::Error", tag = "2")]
@@ -80,13 +80,13 @@ pub struct AggregatePkRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AggregateResponse {
-    #[prost(oneof = "aggregate_response::Response", tags = "1, 2")]
-    pub response: ::core::option::Option<aggregate_response::Response>,
+    #[prost(oneof = "aggregate_response::Agg", tags = "1, 2")]
+    pub agg: ::core::option::Option<aggregate_response::Agg>,
 }
 /// Nested message and enum types in `AggregateResponse`.
 pub mod aggregate_response {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Response {
+    pub enum Agg {
         #[prost(bytes, tag = "1")]
         Code(::prost::alloc::vec::Vec<u8>),
         #[prost(enumeration = "super::Error", tag = "2")]
