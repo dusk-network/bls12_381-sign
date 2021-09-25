@@ -17,6 +17,7 @@ use dusk_bls12_381_sign::{Error, PublicKey, SecretKey, Signature, APK};
 use signer::{
     sign_response::Sig,
     signer_server::{Signer, SignerServer},
+    verify_response::Ver,
     AggregatePkRequest, AggregateResponse, AggregateSigRequest,
     CreateApkRequest, CreateApkResponse, GenerateKeysResponse, SignRequest,
     SignResponse, VerifyRequest, VerifyResponse,
@@ -52,13 +53,15 @@ impl Signer for MySign {
         request: Request<SignRequest>,
     ) -> Result<Response<SignResponse>, Status> {
         // access the request parameters
-        let req: SignRequest = request.into_request().into_inner();
+        let req = request.get_ref();
         // read in the secret key
         let sk = <&[u8; SecretKey::serialized_size()]>::try_from(
             req.private_key.as_slice(),
         );
         if sk.is_err() {
-            return Err(Status::invalid_argument("error decoding secret key"));
+            return Err(Status::invalid_argument(
+                "provided secret key is wrong length",
+            ));
         }
         let sk = sk.unwrap();
         let sk = SecretKey::from_bytes(sk);
@@ -70,19 +73,22 @@ impl Signer for MySign {
             req.public_key.as_slice(),
         );
         if pk.is_err() {
-            return Err(Status::invalid_argument("error decoding public key"));
+            return Err(Status::invalid_argument(
+                "provided public key is wrong length",
+            ));
         }
         let pk = pk.unwrap();
         let pk = PublicKey::from_bytes(pk);
         if pk.is_err() {
             return Err(Status::invalid_argument("error decoding public key"));
         }
-        let pk = pk.unwrap();
-        let msg = req.message;
-
-        let res = sk.sign(&pk, &msg).to_bytes();
+        let res = Sig::Signature(
+            sk.sign(&pk.unwrap(), req.message.as_slice())
+                .to_bytes()
+                .to_vec(),
+        );
         Ok(Response::new(SignResponse {
-            sig: Option::Some(Sig::Signature(res.to_vec())),
+            sig: Option::Some(res),
         }))
     }
 
@@ -90,8 +96,48 @@ impl Signer for MySign {
         &self,
         request: Request<VerifyRequest>,
     ) -> Result<Response<VerifyResponse>, Status> {
-        let reply = VerifyResponse { ver: None };
-        Ok(Response::new(reply))
+        // access the request parameters
+        let req = request.get_ref();
+        let apk =
+            <&[u8; PublicKey::serialized_size()]>::try_from(req.apk.as_slice());
+        if apk.is_err() {
+            return Err(Status::invalid_argument(
+                "provided (aggregated) public key is wrong length",
+            ));
+        }
+        let apk = apk.unwrap();
+        let apk = APK::from_bytes(apk);
+        if apk.is_err() {
+            return Err(Status::invalid_argument(
+                "(aggregated) public key failed to decode",
+            ));
+        }
+        let apk = apk.unwrap();
+        let sig = <&[u8; Signature::serialized_size()]>::try_from(
+            req.signature.as_slice(),
+        );
+        if sig.is_err() {
+            return Err(Status::invalid_argument(
+                "provided (aggregated) public key is wrong length",
+            ));
+        }
+        let sig = sig.unwrap();
+        let sig = Signature::from_bytes(sig);
+        if sig.is_err() {
+            return Err(Status::invalid_argument(
+                "provided signature is in invalid form",
+            ));
+        }
+        let sig = sig.unwrap();
+        let res = apk.verify(&sig, &req.message);
+        if !res.is_ok() {
+            return Err(Status::invalid_argument(
+                "provided signature fails verification",
+            ));
+        }
+        Ok(Response::new(VerifyResponse {
+            ver: Some(Ver::Valid(true)),
+        }))
     }
 
     async fn create_apk(

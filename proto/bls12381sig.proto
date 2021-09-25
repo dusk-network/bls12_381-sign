@@ -33,8 +33,9 @@ message SignResponse {
 }
 
 message VerifyRequest {
-  bytes Signature = 1;
-  bytes Message = 2;
+  bytes Apk = 1;
+  bytes Signature = 2;
+  bytes Message = 3;
 }
 message VerifyResponse {
   oneof ver {
