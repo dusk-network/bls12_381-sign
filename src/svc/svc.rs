@@ -23,6 +23,7 @@ use signer::{
     SignResponse, VerifyRequest, VerifyResponse,
 };
 use std::convert::{TryFrom, TryInto};
+use crate::signer::create_apk_response::Apk::Apk;
 
 mod signer;
 
@@ -38,9 +39,11 @@ impl Signer for MySign {
         &self,
         _request: Request<()>,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
+
         // get a new random secret key from system entropy
         let sk = SecretKey::new(&mut rand_core::OsRng);
-        // construct the gRPC response from the key and return the response
+
+        // construct the gRPC response from the key and return it
         Ok(Response::new(GenerateKeysResponse {
             private_key: sk.to_bytes().to_vec(),
             public_key: PublicKey::from(&sk).to_bytes().to_vec(),
@@ -52,9 +55,11 @@ impl Signer for MySign {
         &self,
         request: Request<SignRequest>,
     ) -> Result<Response<SignResponse>, Status> {
+
         // access the request parameters
         let req = request.get_ref();
-        // read in the secret key
+
+        // check the length of the secret key and convert to a fixed length array
         let sk = <&[u8; SecretKey::serialized_size()]>::try_from(
             req.private_key.as_slice(),
         );
@@ -64,11 +69,14 @@ impl Signer for MySign {
             ));
         }
         let sk = sk.unwrap();
+        // create a new secret key from the provided bytes
         let sk = SecretKey::from_bytes(sk);
         if sk.is_err() {
             return Err(Status::invalid_argument("error decoding secret key"));
         }
         let sk = sk.unwrap();
+
+        // check the length of the public key and convert to fixed length array
         let pk = <&[u8; PublicKey::serialized_size()]>::try_from(
             req.public_key.as_slice(),
         );
@@ -78,15 +86,21 @@ impl Signer for MySign {
             ));
         }
         let pk = pk.unwrap();
+        // create a new public key from the provided bytes
         let pk = PublicKey::from_bytes(pk);
         if pk.is_err() {
             return Err(Status::invalid_argument("error decoding public key"));
         }
+        let pk = pk.unwrap();
+
+        // sign the message
         let res = Sig::Signature(
-            sk.sign(&pk.unwrap(), req.message.as_slice())
+            sk.sign(&pk, req.message.as_slice())
                 .to_bytes()
                 .to_vec(),
         );
+
+        // return the signature wrapped in the response type
         Ok(Response::new(SignResponse {
             sig: Option::Some(res),
         }))
@@ -96,8 +110,11 @@ impl Signer for MySign {
         &self,
         request: Request<VerifyRequest>,
     ) -> Result<Response<VerifyResponse>, Status> {
+
         // access the request parameters
         let req = request.get_ref();
+
+        // check length of public key and convert to fixed length array
         let apk =
             <&[u8; PublicKey::serialized_size()]>::try_from(req.apk.as_slice());
         if apk.is_err() {
@@ -106,6 +123,7 @@ impl Signer for MySign {
             ));
         }
         let apk = apk.unwrap();
+        // create new aggregated public key from provided bytes
         let apk = APK::from_bytes(apk);
         if apk.is_err() {
             return Err(Status::invalid_argument(
@@ -113,6 +131,8 @@ impl Signer for MySign {
             ));
         }
         let apk = apk.unwrap();
+
+        // check length of signature and convert to fixed length array
         let sig = <&[u8; Signature::serialized_size()]>::try_from(
             req.signature.as_slice(),
         );
@@ -122,6 +142,7 @@ impl Signer for MySign {
             ));
         }
         let sig = sig.unwrap();
+        // create signature from the provided bytes
         let sig = Signature::from_bytes(sig);
         if sig.is_err() {
             return Err(Status::invalid_argument(
@@ -129,14 +150,14 @@ impl Signer for MySign {
             ));
         }
         let sig = sig.unwrap();
+
+        // verify the message matches the signature and the signature matches the
+        // given public key
         let res = apk.verify(&sig, &req.message);
-        if !res.is_ok() {
-            return Err(Status::invalid_argument(
-                "provided signature fails verification",
-            ));
-        }
+
+        // return whether the verification returned no error
         Ok(Response::new(VerifyResponse {
-            ver: Some(Ver::Valid(true)),
+            ver: Some(Ver::Valid(!res.is_err())),
         }))
     }
 
@@ -144,14 +165,41 @@ impl Signer for MySign {
         &self,
         request: Request<CreateApkRequest>,
     ) -> Result<Response<CreateApkResponse>, Status> {
-        let reply = CreateApkResponse { apk: None };
-        Ok(Response::new(reply))
+
+        // access the request parameters
+        let req = request.get_ref();
+
+        // check the length of the public key and convert to fixed length array
+        let pk = <&[u8; PublicKey::serialized_size()]>::try_from(
+            req.public_key.as_slice(),
+        );
+        if pk.is_err() {
+            return Err(Status::invalid_argument(
+                "provided public key is wrong length",
+            ));
+        }
+        let pk = pk.unwrap();
+        // create a new public key from the provided bytes
+        let pk = PublicKey::from_bytes(pk);
+        if pk.is_err() {
+            return Err(Status::invalid_argument("error decoding public key"));
+        }
+        let pk = pk.unwrap();
+
+        // convert public key to aggregated public key and return it
+        let apk = APK::from(&pk);
+        Ok(Response::new(CreateApkResponse {
+            apk: Some(Apk(apk.to_vec())),
+        }))
     }
 
     async fn aggregate_pk(
         &self,
         request: Request<AggregatePkRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
+
+
+
         let reply = AggregateResponse { agg: None };
         Ok(Response::new(reply))
     }
