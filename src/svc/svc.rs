@@ -6,25 +6,34 @@
 
 #![cfg_attr(not(unix), allow(unused_imports))]
 
-use std::path::Path;
+// use std::path::Path;
 
-use futures::TryFutureExt;
-#[cfg(unix)]
-use tokio::net::UnixListener;
-use tonic::{transport::Server, IntoRequest, Request, Response, Status};
+// use futures::TryFutureExt;
+// #[cfg(unix)]
+// use tokio::net::UnixListener;
+use tonic::{
+    // transport::Server, IntoRequest,
+    Request,
+    Response,
+    Status,
+};
 
 use crate::signer::create_apk_response::Apk::Apk;
-use dusk_bls12_381_sign::{Error, PublicKey, SecretKey, Signature, APK};
-use signer::{
-    aggregate_response::Agg,
-    sign_response::Sig,
-    signer_server::{Signer, SignerServer},
-    verify_response::Ver,
-    AggregatePkRequest, AggregateResponse, AggregateSigRequest,
-    CreateApkRequest, CreateApkResponse, GenerateKeysResponse, SignRequest,
-    SignResponse, VerifyRequest, VerifyResponse,
+use dusk_bls12_381_sign::{
+    // Error,
+    PublicKey,
+    SecretKey,
+    Signature,
+    APK,
 };
-use std::convert::{TryFrom, TryInto};
+use signer::{
+    aggregate_response::Agg, sign_response::Sig, signer_server::Signer,
+    verify_response::Ver, AggregatePkRequest, AggregateResponse,
+    AggregateSigRequest, CreateApkRequest, CreateApkResponse,
+    GenerateKeysResponse, SignRequest, SignResponse, VerifyRequest,
+    VerifyResponse,
+};
+use std::convert::TryFrom;
 
 mod signer;
 
@@ -271,7 +280,7 @@ impl Signer for MySign {
         if sig.is_err() {
             return Err(Status::invalid_argument("signature failed to decode"));
         }
-        let mut sig = sig.unwrap();
+        let sig = sig.unwrap();
 
         // convert the raw bytes from the message to a collection of signatures
         let mut sigs: Vec<Signature> = Vec::with_capacity(req.signatures.len());
@@ -285,7 +294,7 @@ impl Signer for MySign {
                 ));
             }
             let s = s.unwrap();
-            // create a new public key from the provided bytes
+            // create a new signature from the provided bytes
             let s = Signature::from_bytes(s);
             if s.is_err() {
                 return Err(Status::invalid_argument(
@@ -294,14 +303,14 @@ impl Signer for MySign {
             }
             let s = s.unwrap();
 
-            // append to collection of PublicKeys
+            // append to collection of Signature
             sigs[i] = s;
         }
 
         // aggregate the signatures
         sig.aggregate(&sigs.as_slice());
 
-        // convert public key to aggregated public key and return it
+        // convert aggregate signature to bytes and return
         let sigb = sig.to_bytes();
         Ok(Response::new(AggregateResponse {
             agg: Some(Agg::Code(sigb.into())),
