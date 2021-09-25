@@ -192,7 +192,6 @@ impl Signer for MySign {
         &self,
         request: Request<AggregatePkRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
@@ -218,7 +217,6 @@ impl Signer for MySign {
         // convert the raw bytes from the message to a collection of public keys
         let mut pks: Vec<PublicKey> = Vec::with_capacity(req.keys.len());
         for (i, key) in req.keys.iter().enumerate() {
-
             // check the length of the public key and convert to fixed length array
             let pk =
                 <&[u8; PublicKey::serialized_size()]>::try_from(key.as_slice());
@@ -246,8 +244,7 @@ impl Signer for MySign {
         // convert public key to aggregated public key and return it
         let apb = apk.to_bytes();
         Ok(Response::new(AggregateResponse {
-            // agg: Some(Agg::from(apb.into())),
-            agg: None,
+            agg: Some(Agg::Code(apb.into())),
         }))
     }
 
