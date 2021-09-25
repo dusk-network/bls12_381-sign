@@ -1,14 +1,16 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenerateKeysRequest {}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenerateKeysResponse {
     #[prost(bytes = "vec", tag = "1")]
-    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    pub secret_key: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "2")]
     pub public_key: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SignRequest {
     #[prost(bytes = "vec", tag = "1")]
-    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    pub secret_key: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "2")]
     pub public_key: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "3")]
@@ -185,7 +187,7 @@ pub mod signer_client {
         }
         pub async fn generate_keys(
             &mut self,
-            request: impl tonic::IntoRequest<()>,
+            request: impl tonic::IntoRequest<super::GenerateKeysRequest>,
         ) -> Result<tonic::Response<super::GenerateKeysResponse>, tonic::Status>
         {
             self.inner.ready().await.map_err(|e| {
@@ -294,7 +296,7 @@ pub mod signer_server {
     pub trait Signer: Send + Sync + 'static {
         async fn generate_keys(
             &self,
-            request: tonic::Request<()>,
+            request: tonic::Request<super::GenerateKeysRequest>,
         ) -> Result<tonic::Response<super::GenerateKeysResponse>, tonic::Status>;
         async fn sign(
             &self,
@@ -365,7 +367,10 @@ pub mod signer_server {
                 "/signer.Signer/GenerateKeys" => {
                     #[allow(non_camel_case_types)]
                     struct GenerateKeysSvc<T: Signer>(pub Arc<T>);
-                    impl<T: Signer> tonic::server::UnaryService<()> for GenerateKeysSvc<T> {
+                    impl<T: Signer>
+                        tonic::server::UnaryService<super::GenerateKeysRequest>
+                        for GenerateKeysSvc<T>
+                    {
                         type Response = super::GenerateKeysResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
@@ -373,7 +378,7 @@ pub mod signer_server {
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<()>,
+                            request: tonic::Request<super::GenerateKeysRequest>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
                             let fut = async move {

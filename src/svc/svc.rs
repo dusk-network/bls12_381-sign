@@ -19,8 +19,6 @@ use tonic::{
     Status,
 };
 
-use crate::signer::create_apk_response::Apk::Apk;
-use crate::signer::signer_server::SignerServer;
 use dusk_bls12_381_sign::{
     // Error,
     PublicKey,
@@ -29,15 +27,19 @@ use dusk_bls12_381_sign::{
     APK,
 };
 use signer::{
-    aggregate_response::Agg, sign_response::Sig, signer_server::Signer,
-    verify_response::Ver, AggregatePkRequest, AggregateResponse,
-    AggregateSigRequest, CreateApkRequest, CreateApkResponse,
+    aggregate_response::Agg,
+    create_apk_response::Apk::Apk,
+    sign_response::Sig,
+    signer_server::{Signer, SignerServer},
+    verify_response::Ver,
+    AggregatePkRequest, AggregateResponse, AggregateSigRequest,
+    CreateApkRequest, CreateApkResponse, GenerateKeysRequest,
     GenerateKeysResponse, SignRequest, SignResponse, VerifyRequest,
     VerifyResponse,
 };
 use std::convert::TryFrom;
 
-mod signer;
+pub mod signer;
 
 #[derive(Default)]
 pub struct MySign {}
@@ -49,14 +51,14 @@ impl Signer for MySign {
     /// Generate a new BLS12-381 key pair
     async fn generate_keys(
         &self,
-        _request: Request<()>,
+        _request: Request<GenerateKeysRequest>,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
         // get a new random secret key from system entropy
         let sk = SecretKey::new(&mut rand_core::OsRng);
 
         // construct the gRPC response from the key and return it
         Ok(Response::new(GenerateKeysResponse {
-            private_key: sk.to_bytes().to_vec(),
+            secret_key: sk.to_bytes().to_vec(),
             public_key: PublicKey::from(&sk).to_bytes().to_vec(),
         }))
     }
@@ -71,7 +73,7 @@ impl Signer for MySign {
 
         // check the length of the secret key and convert to a fixed length array
         let sk = <&[u8; SecretKey::serialized_size()]>::try_from(
-            req.private_key.as_slice(),
+            req.secret_key.as_slice(),
         );
         if sk.is_err() {
             return Err(Status::invalid_argument(
@@ -319,7 +321,7 @@ impl Signer for MySign {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // defining address for our service
-    let addr = "[::1]:50051".parse().unwrap();
+    let addr = "127.0.0.1:9156".parse().unwrap();
     // creating a service
     let signeur = MySign::default();
     println!("Server listening on {}", addr);

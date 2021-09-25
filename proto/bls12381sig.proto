@@ -7,21 +7,22 @@
 syntax = "proto3";
 package signer;
 
-import "google/protobuf/empty.proto";
-
 enum Error {
   BLS_INVALID_BYTES = 0;
   BLS_VERIFICATION_FAILED = 1;
   UNKNOWN = 2;
 }
 
+message GenerateKeysRequest{
+}
+
 message GenerateKeysResponse {
-  bytes PrivateKey = 1;
+  bytes SecretKey = 1;
   bytes PublicKey = 2;
 }
 
 message SignRequest {
-  bytes PrivateKey = 1;
+  bytes SecretKey = 1;
   bytes PublicKey = 2;
   bytes Message = 3;
 }
@@ -71,7 +72,7 @@ message AggregateSigRequest {
 }
 
 service Signer {
-  rpc GenerateKeys(google.protobuf.Empty) returns (GenerateKeysResponse);
+  rpc GenerateKeys(GenerateKeysRequest) returns (GenerateKeysResponse);
   rpc Sign(SignRequest) returns (SignResponse);
   rpc Verify(VerifyRequest) returns (VerifyResponse);
   rpc CreateAPK(CreateAPKRequest) returns (CreateAPKResponse);

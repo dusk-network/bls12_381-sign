@@ -29,6 +29,10 @@ crate-type = ["rlib", "staticlib"]
 name = "bls12381sig"
 path = "src/svc/svc.rs"
 
+[[bin]]
+name = "client"
+path = "src/svc/client.rs"
+
 [profile.dev]
 panic = "abort"
 
