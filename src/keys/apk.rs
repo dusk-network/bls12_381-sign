@@ -8,7 +8,7 @@
 use crate::{h1, Signature};
 use crate::{Error, PublicKey};
 #[cfg(feature = "canon")]
-use canonical::Canon;
+// use canonical::Canon;
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
 #[cfg(feature = "std")]
