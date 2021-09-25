@@ -42,14 +42,13 @@ pub struct MySign {}
 
 #[tonic::async_trait]
 impl Signer for MySign {
-    // BLS12-381 Signer service implementation
+    /// BLS12-381 Signer service implementation
 
-    // Generate a new BLS12-381 key pair
+    /// Generate a new BLS12-381 key pair
     async fn generate_keys(
         &self,
         _request: Request<()>,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
-
         // get a new random secret key from system entropy
         let sk = SecretKey::new(&mut rand_core::OsRng);
 
@@ -60,12 +59,11 @@ impl Signer for MySign {
         }))
     }
 
-    // Sign a message using a provided BLS12-381 key pair
+    /// Sign a message using a provided BLS12-381 key pair
     async fn sign(
         &self,
         request: Request<SignRequest>,
     ) -> Result<Response<SignResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
@@ -115,11 +113,11 @@ impl Signer for MySign {
         }))
     }
 
+    /// Verify a BLS12-381 signature on a message with a given public key
     async fn verify(
         &self,
         request: Request<VerifyRequest>,
     ) -> Result<Response<VerifyResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
@@ -169,11 +167,11 @@ impl Signer for MySign {
         }))
     }
 
+    /// Create an aggregated public key from a public key
     async fn create_apk(
         &self,
         request: Request<CreateApkRequest>,
     ) -> Result<Response<CreateApkResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
@@ -200,11 +198,11 @@ impl Signer for MySign {
         }))
     }
 
+    /// Aggregate a collection of public keys to an aggregated public key
     async fn aggregate_pk(
         &self,
         request: Request<AggregatePkRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
@@ -258,11 +256,11 @@ impl Signer for MySign {
         }))
     }
 
+    /// Aggregate a collection of signatures into an aggregated signature
     async fn aggregate_sig(
         &self,
         request: Request<AggregateSigRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
