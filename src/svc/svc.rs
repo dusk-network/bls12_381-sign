@@ -49,6 +49,7 @@ impl Signer for MySign {
         &self,
         _request: Request<()>,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
+
         // get a new random secret key from system entropy
         let sk = SecretKey::new(&mut rand_core::OsRng);
 
@@ -64,6 +65,7 @@ impl Signer for MySign {
         &self,
         request: Request<SignRequest>,
     ) -> Result<Response<SignResponse>, Status> {
+
         // access the request parameters
         let req = request.get_ref();
 
@@ -76,9 +78,9 @@ impl Signer for MySign {
                 "provided secret key is wrong length",
             ));
         }
-        let sk = sk.unwrap();
+
         // create a new secret key from the provided bytes
-        let sk = SecretKey::from_bytes(sk);
+        let sk = SecretKey::from_bytes(sk.unwrap());
         if sk.is_err() {
             return Err(Status::invalid_argument("error decoding secret key"));
         }
@@ -93,17 +95,16 @@ impl Signer for MySign {
                 "provided public key is wrong length",
             ));
         }
-        let pk = pk.unwrap();
+
         // create a new public key from the provided bytes
-        let pk = PublicKey::from_bytes(pk);
+        let pk = PublicKey::from_bytes(pk.unwrap());
         if pk.is_err() {
             return Err(Status::invalid_argument("error decoding public key"));
         }
-        let pk = pk.unwrap();
 
         // sign the message
         let res = Sig::Signature(
-            sk.sign(&pk, req.message.as_slice()).to_bytes().to_vec(),
+            sk.sign(&pk.unwrap(), req.message.as_slice()).to_bytes().to_vec(),
         );
 
         // return the signature wrapped in the response type
@@ -116,6 +117,7 @@ impl Signer for MySign {
         &self,
         request: Request<VerifyRequest>,
     ) -> Result<Response<VerifyResponse>, Status> {
+
         // access the request parameters
         let req = request.get_ref();
 
@@ -127,9 +129,9 @@ impl Signer for MySign {
                 "provided (aggregated) public key is wrong length",
             ));
         }
-        let apk = apk.unwrap();
+
         // create new aggregated public key from provided bytes
-        let apk = APK::from_bytes(apk);
+        let apk = APK::from_bytes(apk.unwrap());
         if apk.is_err() {
             return Err(Status::invalid_argument(
                 "(aggregated) public key failed to decode",
@@ -146,19 +148,18 @@ impl Signer for MySign {
                 "provided (aggregated) public key is wrong length",
             ));
         }
-        let sig = sig.unwrap();
+
         // create signature from the provided bytes
-        let sig = Signature::from_bytes(sig);
+        let sig = Signature::from_bytes(sig.unwrap());
         if sig.is_err() {
             return Err(Status::invalid_argument(
                 "provided signature is in invalid form",
             ));
         }
-        let sig = sig.unwrap();
 
         // verify the message matches the signature and the signature matches the
         // given public key
-        let res = apk.verify(&sig, &req.message);
+        let res = apk.verify(&sig.unwrap(), &req.message);
 
         // return whether the verification returned no error
         Ok(Response::new(VerifyResponse {
@@ -170,6 +171,7 @@ impl Signer for MySign {
         &self,
         request: Request<CreateApkRequest>,
     ) -> Result<Response<CreateApkResponse>, Status> {
+
         // access the request parameters
         let req = request.get_ref();
 
@@ -182,16 +184,15 @@ impl Signer for MySign {
                 "provided public key is wrong length",
             ));
         }
-        let pk = pk.unwrap();
+
         // create a new public key from the provided bytes
-        let pk = PublicKey::from_bytes(pk);
+        let pk = PublicKey::from_bytes(pk.unwrap());
         if pk.is_err() {
             return Err(Status::invalid_argument("error decoding public key"));
         }
-        let pk = pk.unwrap();
 
         // convert public key to aggregated public key and return it
-        let apk = APK::from(&pk);
+        let apk = APK::from(&pk.unwrap());
         Ok(Response::new(CreateApkResponse {
             apk: Some(Apk(apk.to_bytes().to_vec())),
         }))
@@ -201,6 +202,7 @@ impl Signer for MySign {
         &self,
         request: Request<AggregatePkRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
+
         // access the request parameters
         let req = request.get_ref();
 
@@ -212,10 +214,9 @@ impl Signer for MySign {
                 "provided (aggregated) public key is wrong length",
             ));
         }
-        let apk = apk.unwrap();
 
         // create new aggregated public key from provided bytes
-        let apk = APK::from_bytes(apk);
+        let apk = APK::from_bytes(apk.unwrap());
         if apk.is_err() {
             return Err(Status::invalid_argument(
                 "(aggregated) public key failed to decode",
@@ -226,6 +227,7 @@ impl Signer for MySign {
         // convert the raw bytes from the message to a collection of public keys
         let mut pks: Vec<PublicKey> = Vec::with_capacity(req.keys.len());
         for (i, key) in req.keys.iter().enumerate() {
+
             // check the length of the public key and convert to fixed length array
             let pk =
                 <&[u8; PublicKey::serialized_size()]>::try_from(key.as_slice());
@@ -234,27 +236,24 @@ impl Signer for MySign {
                     "provided public key is wrong length",
                 ));
             }
-            let pk = pk.unwrap();
             // create a new public key from the provided bytes
-            let pk = PublicKey::from_bytes(pk);
+            let pk = PublicKey::from_bytes(pk.unwrap());
             if pk.is_err() {
                 return Err(Status::invalid_argument(
                     "error decoding public key",
                 ));
             }
-            let pk = pk.unwrap();
 
             // append to collection of PublicKeys
-            pks[i] = pk;
+            pks[i] = pk.unwrap();
         }
 
         // aggregate the keys
         apk.aggregate(&pks.as_slice());
 
         // convert public key to aggregated public key and return it
-        let apb = apk.to_bytes();
         Ok(Response::new(AggregateResponse {
-            agg: Some(Agg::Code(apb.into())),
+            agg: Some(Agg::Code(apk.to_bytes().into())),
         }))
     }
 
@@ -262,6 +261,7 @@ impl Signer for MySign {
         &self,
         request: Request<AggregateSigRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
+
         // access the request parameters
         let req = request.get_ref();
 
@@ -274,9 +274,9 @@ impl Signer for MySign {
                 "provided signature is wrong length",
             ));
         }
-        let sig = sig.unwrap();
-        // create new aggregated public key from provided bytes
-        let sig = Signature::from_bytes(sig);
+
+        // create new aggregated signature from provided bytes
+        let sig = Signature::from_bytes(sig.unwrap());
         if sig.is_err() {
             return Err(Status::invalid_argument("signature failed to decode"));
         }
@@ -285,6 +285,7 @@ impl Signer for MySign {
         // convert the raw bytes from the message to a collection of signatures
         let mut sigs: Vec<Signature> = Vec::with_capacity(req.signatures.len());
         for (i, si) in req.signatures.iter().enumerate() {
+
             // check the length of the signature and convert to fixed length array
             let s =
                 <&[u8; Signature::serialized_size()]>::try_from(si.as_slice());
@@ -293,27 +294,24 @@ impl Signer for MySign {
                     "provided signature is wrong length",
                 ));
             }
-            let s = s.unwrap();
             // create a new signature from the provided bytes
-            let s = Signature::from_bytes(s);
+            let s = Signature::from_bytes(s.unwrap());
             if s.is_err() {
                 return Err(Status::invalid_argument(
                     "error decoding public key",
                 ));
             }
-            let s = s.unwrap();
 
             // append to collection of Signature
-            sigs[i] = s;
+            sigs[i] = s.unwrap();
         }
 
         // aggregate the signatures
         sig.aggregate(&sigs.as_slice());
 
         // convert aggregate signature to bytes and return
-        let sigb = sig.to_bytes();
         Ok(Response::new(AggregateResponse {
-            agg: Some(Agg::Code(sigb.into())),
+            agg: Some(Agg::Code(sig.to_bytes().into())),
         }))
     }
 }
