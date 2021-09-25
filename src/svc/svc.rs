@@ -12,13 +12,15 @@
 // #[cfg(unix)]
 // use tokio::net::UnixListener;
 use tonic::{
-    // transport::Server, IntoRequest,
+    transport::Server,
+    // IntoRequest,
     Request,
     Response,
     Status,
 };
 
 use crate::signer::create_apk_response::Apk::Apk;
+use crate::signer::signer_server::SignerServer;
 use dusk_bls12_381_sign::{
     // Error,
     PublicKey,
@@ -314,7 +316,20 @@ impl Signer for MySign {
     }
 }
 
-fn main() {}
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // defining address for our service
+    let addr = "[::1]:50051".parse().unwrap();
+    // creating a service
+    let signeur = MySign::default();
+    println!("Server listening on {}", addr);
+    // adding our service to our server.
+    Server::builder()
+        .add_service(SignerServer::new(signeur))
+        .serve(addr)
+        .await?;
+    Ok(())
+}
 
 #[cfg(not(unix))]
 fn main() {
