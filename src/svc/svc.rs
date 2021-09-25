@@ -49,7 +49,6 @@ impl Signer for MySign {
         &self,
         _request: Request<()>,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
-
         // get a new random secret key from system entropy
         let sk = SecretKey::new(&mut rand_core::OsRng);
 
@@ -65,7 +64,6 @@ impl Signer for MySign {
         &self,
         request: Request<SignRequest>,
     ) -> Result<Response<SignResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
@@ -104,7 +102,9 @@ impl Signer for MySign {
 
         // sign the message
         let res = Sig::Signature(
-            sk.sign(&pk.unwrap(), req.message.as_slice()).to_bytes().to_vec(),
+            sk.sign(&pk.unwrap(), req.message.as_slice())
+                .to_bytes()
+                .to_vec(),
         );
 
         // return the signature wrapped in the response type
@@ -117,7 +117,6 @@ impl Signer for MySign {
         &self,
         request: Request<VerifyRequest>,
     ) -> Result<Response<VerifyResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
@@ -171,7 +170,6 @@ impl Signer for MySign {
         &self,
         request: Request<CreateApkRequest>,
     ) -> Result<Response<CreateApkResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
@@ -202,7 +200,6 @@ impl Signer for MySign {
         &self,
         request: Request<AggregatePkRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
@@ -227,7 +224,6 @@ impl Signer for MySign {
         // convert the raw bytes from the message to a collection of public keys
         let mut pks: Vec<PublicKey> = Vec::with_capacity(req.keys.len());
         for (i, key) in req.keys.iter().enumerate() {
-
             // check the length of the public key and convert to fixed length array
             let pk =
                 <&[u8; PublicKey::serialized_size()]>::try_from(key.as_slice());
@@ -261,7 +257,6 @@ impl Signer for MySign {
         &self,
         request: Request<AggregateSigRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-
         // access the request parameters
         let req = request.get_ref();
 
@@ -285,7 +280,6 @@ impl Signer for MySign {
         // convert the raw bytes from the message to a collection of signatures
         let mut sigs: Vec<Signature> = Vec::with_capacity(req.signatures.len());
         for (i, si) in req.signatures.iter().enumerate() {
-
             // check the length of the signature and convert to fixed length array
             let s =
                 <&[u8; Signature::serialized_size()]>::try_from(si.as_slice());
