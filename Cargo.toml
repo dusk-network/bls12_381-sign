@@ -18,6 +18,7 @@ prost =  "0.8"
 tonic =  "0.5"
 tokio =  {version = "1.0", features = ["macros", "rt-multi-thread"]}
 futures = { version = "0.3", default-features = false, features = ["alloc"] }
+clap = "3.0.0-beta.2"
 
 [build-dependencies]
 tonic-build = "0.5"
@@ -26,11 +27,11 @@ tonic-build = "0.5"
 crate-type = ["rlib", "staticlib"]
 
 [[bin]]
-name = "bls12381sig"
+name = "bls12381svc"
 path = "src/svc/svc.rs"
 
 [[bin]]
-name = "client"
+name = "bls12381client"
 path = "src/svc/client.rs"
 
 [profile.dev]
