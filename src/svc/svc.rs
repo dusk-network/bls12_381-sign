@@ -194,9 +194,10 @@ impl Signer for MySign {
         if pk.is_err() {
             return Err(Status::invalid_argument("error decoding public key"));
         }
-
+        let pk = pk.unwrap();
         // convert public key to aggregated public key and return it
-        let apk = APK::from(&pk.unwrap());
+        let apk = APK::from_bytes(&pk.to_bytes());
+        let apk = apk.unwrap();
         Ok(Response::new(CreateApkResponse {
             apk: Some(Apk(apk.to_bytes().to_vec())),
         }))
