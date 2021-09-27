@@ -11,35 +11,17 @@
 // use futures::TryFutureExt;
 // #[cfg(unix)]
 // use tokio::net::UnixListener;
-use tonic::{
-    transport::Server,
-    // IntoRequest,
-    Request,
-    Response,
-    Status,
-};
+use tonic::{transport::Server, Request, Response, Status};
 
-use dusk_bls12_381_sign::{
-    // Error,
-    PublicKey,
-    SecretKey,
-    Signature,
-    APK,
-};
-use signer::{
-    aggregate_response::Agg,
-    create_apk_response::Apk::Apk,
-    sign_response::Sig,
-    signer_server::{Signer, SignerServer},
-    verify_response::Ver,
-    AggregatePkRequest, AggregateResponse, AggregateSigRequest,
-    CreateApkRequest, CreateApkResponse, GenerateKeysRequest,
-    GenerateKeysResponse, SignRequest, SignResponse, VerifyRequest,
-    VerifyResponse,
-};
+tonic::include_proto!("bls12381sig");
+
+use aggregate_response::Agg::Code;
+use create_apk_response::Apk::Apk;
+use dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK};
+use sign_response::Sig::Signature as ResponseSignature;
+use signer_server::{Signer, SignerServer};
 use std::convert::TryFrom;
-
-pub mod signer;
+use verify_response::Ver::Valid;
 
 #[derive(Default)]
 pub struct MySign {}
@@ -105,7 +87,7 @@ impl Signer for MySign {
         }
 
         // sign the message
-        let res = Sig::Signature(
+        let res = ResponseSignature(
             sk.sign(&pk.unwrap(), req.message.as_slice())
                 .to_bytes()
                 .to_vec(),
@@ -167,7 +149,7 @@ impl Signer for MySign {
 
         // return whether the verification returned no error
         Ok(Response::new(VerifyResponse {
-            ver: Some(Ver::Valid(!res.is_err())),
+            ver: Some(Valid(!res.is_err())),
         }))
     }
 
@@ -257,7 +239,7 @@ impl Signer for MySign {
 
         // convert public key to aggregated public key and return it
         Ok(Response::new(AggregateResponse {
-            agg: Some(Agg::Code(apk.to_bytes().into())),
+            agg: Some(Code(apk.to_bytes().into())),
         }))
     }
 
@@ -314,7 +296,7 @@ impl Signer for MySign {
 
         // convert aggregate signature to bytes and return
         Ok(Response::new(AggregateResponse {
-            agg: Some(Agg::Code(sig.to_bytes().into())),
+            agg: Some(Code(sig.to_bytes().into())),
         }))
     }
 }

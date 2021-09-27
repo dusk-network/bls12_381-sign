@@ -9,8 +9,6 @@
 use clap::App;
 // use signer::{signer_client::SignerClient, GenerateKeysRequest};
 
-pub mod signer;
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // define the command line parameters to call the bls12381svc
