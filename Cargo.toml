@@ -31,7 +31,7 @@ name = "bls12381svc"
 path = "src/svc/svc.rs"
 
 [[bin]]
-name = "bls12381client"
+name = "bls12381cli"
 path = "src/svc/client.rs"
 
 [profile.dev]
