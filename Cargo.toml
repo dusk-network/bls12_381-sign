@@ -1,3 +1,4 @@
+#![feature(min_const_generics)]
 [package]
 name = "dusk-bls12_381-sign"
 version = "0.1.0"
