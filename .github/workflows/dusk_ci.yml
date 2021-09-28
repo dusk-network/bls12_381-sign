@@ -1,4 +1,4 @@
-on: [ pull_request ]
+on: [pull_request]
 
 name: Continuous integration
 
@@ -31,9 +31,9 @@ jobs:
           override: true
       - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
-          with:
-            command: install
-            args: --git https://github.com/dusk-network/cargo-dusk-analyzer
+        with:
+          command: install
+          args: --git https://github.com/dusk-network/cargo-dusk-analyzer
       - uses: actions-rs/cargo@v1
         with:
           command: dusk-analyzer
@@ -66,7 +66,7 @@ jobs:
           override: true
       - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
-          with:
-            command: test
-            args: --release
+        with:
+          command: test
+          args: --release
 
