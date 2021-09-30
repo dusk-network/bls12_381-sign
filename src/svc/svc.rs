@@ -6,11 +6,6 @@
 
 #![cfg_attr(not(unix), allow(unused_imports))]
 
-// use std::path::Path;
-
-// use futures::TryFutureExt;
-// #[cfg(unix)]
-// use tokio::net::UnixListener;
 use tonic::{transport::Server, Request, Response, Status};
 
 tonic::include_proto!("bls12381sig");
@@ -54,43 +49,53 @@ impl Signer for MySign {
         let req = request.get_ref();
 
         // check the length of the secret key and convert to a fixed length array
-        let sk = <&[u8; SecretKey::serialized_size()]>::try_from(
+        let sk = match <&[u8; SecretKey::serialized_size()]>::try_from(
             req.secret_key.as_slice(),
-        );
-        if sk.is_err() {
-            return Err(Status::invalid_argument(
-                "provided secret key is wrong length",
-            ));
-        }
+        ) {
+            Ok(sk) => sk,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "provided secret key is wrong length",
+                ))
+            }
+        };
 
         // create a new secret key from the provided bytes
-        let sk = SecretKey::from_bytes(sk.unwrap());
-        if sk.is_err() {
-            return Err(Status::invalid_argument("error decoding secret key"));
-        }
-        let sk = sk.unwrap();
+        // let sk = SecretKey::from_bytes(sk);
+        let sk = match SecretKey::from_bytes(sk) {
+            Ok(sk) => sk,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "error decoding public key",
+                ))
+            }
+        };
 
         // check the length of the public key and convert to fixed length array
-        let pk = <&[u8; PublicKey::serialized_size()]>::try_from(
+        let pk = match <&[u8; PublicKey::serialized_size()]>::try_from(
             req.public_key.as_slice(),
-        );
-        if pk.is_err() {
-            return Err(Status::invalid_argument(
-                "provided public key is wrong length",
-            ));
-        }
+        ) {
+            Ok(pk) => pk,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "provided secret key is wrong length",
+                ))
+            }
+        };
 
         // create a new public key from the provided bytes
-        let pk = PublicKey::from_bytes(pk.unwrap());
-        if pk.is_err() {
-            return Err(Status::invalid_argument("error decoding public key"));
-        }
+        let pk = match PublicKey::from_bytes(pk) {
+            Ok(pk) => pk,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "error decoding public key",
+                ));
+            }
+        };
 
         // sign the message
         let res = ResponseSignature(
-            sk.sign(&pk.unwrap(), req.message.as_slice())
-                .to_bytes()
-                .to_vec(),
+            sk.sign(&pk, req.message.as_slice()).to_bytes().to_vec(),
         );
 
         // return the signature wrapped in the response type
@@ -108,44 +113,52 @@ impl Signer for MySign {
         let req = request.get_ref();
 
         // check length of public key and convert to fixed length array
-        let apk =
-            <&[u8; PublicKey::serialized_size()]>::try_from(req.apk.as_slice());
-        if apk.is_err() {
-            return Err(Status::invalid_argument(
-                "provided (aggregated) public key is wrong length",
-            ));
-        }
+        let apk = match <&[u8; PublicKey::serialized_size()]>::try_from(
+            req.apk.as_slice(),
+        ) {
+            Ok(req) => req,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "provided (aggregated) public key is wrong length",
+                ))
+            }
+        };
 
         // create new aggregated public key from provided bytes
-        let apk = APK::from_bytes(apk.unwrap());
-        if apk.is_err() {
-            return Err(Status::invalid_argument(
-                "(aggregated) public key failed to decode",
-            ));
-        }
-        let apk = apk.unwrap();
+        let apk = match APK::from_bytes(apk) {
+            Ok(apk) => apk,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "(aggregated) public key failed to decode",
+                ))
+            }
+        };
 
         // check length of signature and convert to fixed length array
-        let sig = <&[u8; Signature::serialized_size()]>::try_from(
+        let sig = match <&[u8; Signature::serialized_size()]>::try_from(
             req.signature.as_slice(),
-        );
-        if sig.is_err() {
-            return Err(Status::invalid_argument(
-                "provided (aggregated) public key is wrong length",
-            ));
-        }
+        ) {
+            Ok(sig) => sig,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "provided (aggregated) public key is wrong length",
+                ));
+            }
+        };
 
         // create signature from the provided bytes
-        let sig = Signature::from_bytes(sig.unwrap());
-        if sig.is_err() {
-            return Err(Status::invalid_argument(
-                "provided signature is in invalid form",
-            ));
-        }
+        let sig = match Signature::from_bytes(sig) {
+            Ok(sig) => sig,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "provided signature is in invalid form",
+                ));
+            }
+        };
 
         // verify the message matches the signature and the signature matches the
         // given public key
-        let res = apk.verify(&sig.unwrap(), &req.message);
+        let res = apk.verify(&sig, &req.message);
 
         // return whether the verification returned no error
         Ok(Response::new(VerifyResponse {
@@ -162,24 +175,36 @@ impl Signer for MySign {
         let req = request.get_ref();
 
         // check the length of the public key and convert to fixed length array
-        let pk = <&[u8; PublicKey::serialized_size()]>::try_from(
+        let pk = match <&[u8; PublicKey::serialized_size()]>::try_from(
             req.public_key.as_slice(),
-        );
-        if pk.is_err() {
-            return Err(Status::invalid_argument(
-                "provided public key is wrong length",
-            ));
-        }
+        ) {
+            Ok(pk) => pk,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "provided public key is wrong length",
+                ));
+            }
+        };
 
         // create a new public key from the provided bytes
-        let pk = PublicKey::from_bytes(pk.unwrap());
-        if pk.is_err() {
-            return Err(Status::invalid_argument("error decoding public key"));
-        }
-        let pk = pk.unwrap();
+        let pk = match PublicKey::from_bytes(pk) {
+            Ok(pk) => pk,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "error decoding public key",
+                ));
+            }
+        };
+
         // convert public key to aggregated public key and return it
-        let apk = APK::from_bytes(&pk.to_bytes());
-        let apk = apk.unwrap();
+        let apk = match APK::from_bytes(&pk.to_bytes()) {
+            Ok(apk) => apk,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "error converting public key to aggregated public key",
+                ));
+            }
+        };
         Ok(Response::new(CreateApkResponse {
             apk: Some(Apk(apk.to_bytes().to_vec())),
         }))
@@ -194,44 +219,53 @@ impl Signer for MySign {
         let req = request.get_ref();
 
         // check length of public key and convert to fixed length array
-        let apk =
-            <&[u8; PublicKey::serialized_size()]>::try_from(req.apk.as_slice());
-        if apk.is_err() {
-            return Err(Status::invalid_argument(
-                "provided (aggregated) public key is wrong length",
-            ));
-        }
+        let apk = match <&[u8; PublicKey::serialized_size()]>::try_from(
+            req.apk.as_slice(),
+        ) {
+            Ok(apk) => apk,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "provided (aggregated) public key is wrong length",
+                ));
+            }
+        };
 
         // create new aggregated public key from provided bytes
-        let apk = APK::from_bytes(apk.unwrap());
-        if apk.is_err() {
-            return Err(Status::invalid_argument(
-                "(aggregated) public key failed to decode",
-            ));
-        }
-        let mut apk = apk.unwrap();
+        let mut apk = match APK::from_bytes(apk) {
+            Ok(apk) => apk,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "(aggregated) public key failed to decode",
+                ));
+            }
+        };
 
         // convert the raw bytes from the message to a collection of public keys
         let mut pks: Vec<PublicKey> = Vec::with_capacity(req.keys.len());
         for (i, key) in req.keys.iter().enumerate() {
             // check the length of the public key and convert to fixed length array
-            let pk =
-                <&[u8; PublicKey::serialized_size()]>::try_from(key.as_slice());
-            if pk.is_err() {
-                return Err(Status::invalid_argument(
-                    "provided public key is wrong length",
-                ));
-            }
+            let pk = match <&[u8; PublicKey::serialized_size()]>::try_from(
+                key.as_slice(),
+            ) {
+                Ok(pk) => pk,
+                Err(_) => {
+                    return Err(Status::invalid_argument(
+                        "provided public key is wrong length",
+                    ));
+                }
+            };
             // create a new public key from the provided bytes
-            let pk = PublicKey::from_bytes(pk.unwrap());
-            if pk.is_err() {
-                return Err(Status::invalid_argument(
-                    "error decoding public key",
-                ));
-            }
+            let pk = match PublicKey::from_bytes(pk) {
+                Ok(pk) => pk,
+                Err(_) => {
+                    return Err(Status::invalid_argument(
+                        "error decoding public key",
+                    ));
+                }
+            };
 
-            // append to collection of PublicKeys
-            pks[i] = pk.unwrap();
+            // add to collection of PublicKeys
+            pks[i] = pk;
         }
 
         // aggregate the keys
@@ -252,43 +286,53 @@ impl Signer for MySign {
         let req = request.get_ref();
 
         // check length of signature and convert to fixed length array
-        let sig = <&[u8; Signature::serialized_size()]>::try_from(
+        let sig = match <&[u8; Signature::serialized_size()]>::try_from(
             req.signature.as_slice(),
-        );
-        if sig.is_err() {
-            return Err(Status::invalid_argument(
-                "provided signature is wrong length",
-            ));
-        }
+        ) {
+            Ok(sig) => sig,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "provided signature is wrong length",
+                ));
+            }
+        };
 
         // create new aggregated signature from provided bytes
-        let sig = Signature::from_bytes(sig.unwrap());
-        if sig.is_err() {
-            return Err(Status::invalid_argument("signature failed to decode"));
-        }
-        let sig = sig.unwrap();
+        let sig = match Signature::from_bytes(sig) {
+            Ok(sig) => sig,
+            Err(_) => {
+                return Err(Status::invalid_argument(
+                    "signature failed to decode",
+                ));
+            }
+        };
 
         // convert the raw bytes from the message to a collection of signatures
         let mut sigs: Vec<Signature> = Vec::with_capacity(req.signatures.len());
         for (i, si) in req.signatures.iter().enumerate() {
             // check the length of the signature and convert to fixed length array
-            let s =
-                <&[u8; Signature::serialized_size()]>::try_from(si.as_slice());
-            if s.is_err() {
-                return Err(Status::invalid_argument(
-                    "provided signature is wrong length",
-                ));
-            }
+            let s = match <&[u8; Signature::serialized_size()]>::try_from(
+                si.as_slice(),
+            ) {
+                Ok(s) => s,
+                Err(_) => {
+                    return Err(Status::invalid_argument(
+                        "provided signature is wrong length",
+                    ));
+                }
+            };
             // create a new signature from the provided bytes
-            let s = Signature::from_bytes(s.unwrap());
-            if s.is_err() {
-                return Err(Status::invalid_argument(
-                    "error decoding public key",
-                ));
-            }
+            let s = match Signature::from_bytes(s) {
+                Ok(s) => s,
+                Err(_) => {
+                    return Err(Status::invalid_argument(
+                        "error decoding public key",
+                    ));
+                }
+            };
 
-            // append to collection of Signature
-            sigs[i] = s.unwrap();
+            // add to collection of Signature
+            sigs[i] = s;
         }
 
         // aggregate the signatures
