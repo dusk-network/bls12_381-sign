@@ -66,7 +66,7 @@ impl Signer for MySign {
             Ok(sk) => sk,
             Err(_) => {
                 return Err(Status::invalid_argument(
-                    "error decoding public key",
+                    "error decoding secret key",
                 ))
             }
         };
@@ -76,21 +76,13 @@ impl Signer for MySign {
             req.public_key.as_slice(),
         ) {
             Ok(pk) => pk,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "provided secret key is wrong length",
-                ))
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // create a new public key from the provided bytes
         let pk = match PublicKey::from_bytes(pk) {
             Ok(pk) => pk,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "error decoding public key",
-                ));
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // sign the message
@@ -117,21 +109,13 @@ impl Signer for MySign {
             req.apk.as_slice(),
         ) {
             Ok(req) => req,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "provided (aggregated) public key is wrong length",
-                ))
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // create new aggregated public key from provided bytes
         let apk = match APK::from_bytes(apk) {
             Ok(apk) => apk,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "(aggregated) public key failed to decode",
-                ))
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // check length of signature and convert to fixed length array
@@ -139,21 +123,13 @@ impl Signer for MySign {
             req.signature.as_slice(),
         ) {
             Ok(sig) => sig,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "provided (aggregated) public key is wrong length",
-                ));
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // create signature from the provided bytes
         let sig = match Signature::from_bytes(sig) {
             Ok(sig) => sig,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "provided signature is in invalid form",
-                ));
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // verify the message matches the signature and the signature matches the
@@ -179,31 +155,19 @@ impl Signer for MySign {
             req.public_key.as_slice(),
         ) {
             Ok(pk) => pk,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "provided public key is wrong length",
-                ));
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // create a new public key from the provided bytes
         let pk = match PublicKey::from_bytes(pk) {
             Ok(pk) => pk,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "error decoding public key",
-                ));
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // convert public key to aggregated public key and return it
         let apk = match APK::from_bytes(&pk.to_bytes()) {
             Ok(apk) => apk,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "error converting public key to aggregated public key",
-                ));
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
         Ok(Response::new(CreateApkResponse {
             apk: Some(Apk(apk.to_bytes().to_vec())),
@@ -223,21 +187,13 @@ impl Signer for MySign {
             req.apk.as_slice(),
         ) {
             Ok(apk) => apk,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "provided (aggregated) public key is wrong length",
-                ));
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // create new aggregated public key from provided bytes
         let mut apk = match APK::from_bytes(apk) {
             Ok(apk) => apk,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "(aggregated) public key failed to decode",
-                ));
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // convert the raw bytes from the message to a collection of public keys
@@ -248,20 +204,12 @@ impl Signer for MySign {
                 key.as_slice(),
             ) {
                 Ok(pk) => pk,
-                Err(_) => {
-                    return Err(Status::invalid_argument(
-                        "provided public key is wrong length",
-                    ));
-                }
+                Err(e) => return Err(Status::invalid_argument(e.to_string())),
             };
             // create a new public key from the provided bytes
             let pk = match PublicKey::from_bytes(pk) {
                 Ok(pk) => pk,
-                Err(_) => {
-                    return Err(Status::invalid_argument(
-                        "error decoding public key",
-                    ));
-                }
+                Err(e) => return Err(Status::invalid_argument(e.to_string())),
             };
 
             // add to collection of PublicKeys
@@ -290,21 +238,13 @@ impl Signer for MySign {
             req.signature.as_slice(),
         ) {
             Ok(sig) => sig,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "provided signature is wrong length",
-                ));
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // create new aggregated signature from provided bytes
         let sig = match Signature::from_bytes(sig) {
             Ok(sig) => sig,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "signature failed to decode",
-                ));
-            }
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
         // convert the raw bytes from the message to a collection of signatures
@@ -315,20 +255,12 @@ impl Signer for MySign {
                 si.as_slice(),
             ) {
                 Ok(s) => s,
-                Err(_) => {
-                    return Err(Status::invalid_argument(
-                        "provided signature is wrong length",
-                    ));
-                }
+                Err(e) => return Err(Status::invalid_argument(e.to_string())),
             };
             // create a new signature from the provided bytes
             let s = match Signature::from_bytes(s) {
                 Ok(s) => s,
-                Err(_) => {
-                    return Err(Status::invalid_argument(
-                        "error decoding public key",
-                    ));
-                }
+                Err(e) => return Err(Status::invalid_argument(e.to_string())),
             };
 
             // add to collection of Signature
