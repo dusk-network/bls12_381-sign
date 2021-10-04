@@ -125,11 +125,7 @@ impl Signer for MySign {
         // access the request parameters
         let req = request.get_ref();
         let apk = slice_as!(req.public_key.as_slice(), APK);
-        // attempt to convert public key to aggregated public key
-        let apk = match APK::from_bytes(&apk.to_bytes()) {
-            Ok(apk) => apk,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
+        // todo: is this optimal? Seems like there should be a direct APK->Apk transformation
         Ok(Response::new(CreateApkResponse {
             apk: Some(Apk(apk.to_bytes().to_vec())),
         }))
@@ -143,14 +139,11 @@ impl Signer for MySign {
         // access the request parameters
         let req = request.get_ref();
         let mut apk = slice_as!(req.apk.as_slice(), APK);
-
-        // convert the raw bytes from the message to a collection of public keys
+        // collect the list of public keys into a vector
         let mut pks: Vec<PublicKey> = Vec::with_capacity(req.keys.len());
         for (i, key) in req.keys.iter().enumerate() {
-            // convert bytes to PublicKey
-            let pk = slice_as!(key.as_slice(), PublicKey);
             // add to collection of PublicKeys
-            pks[i] = pk;
+            pks[i] = slice_as!(key.as_slice(), PublicKey);
         }
 
         // aggregate the keys
