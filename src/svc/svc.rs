@@ -61,6 +61,7 @@ macro_rules! slice_as {
 #[tonic::async_trait]
 impl Signer for MySign {
     /// BLS12-381 Signer service implementation
+
     /// Generate a new BLS12-381 key pair
     async fn generate_keys(
         &self,
