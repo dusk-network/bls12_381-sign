@@ -15,16 +15,52 @@ use create_apk_response::Apk::Apk;
 use dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK};
 use sign_response::Sig::Signature as ResponseSignature;
 use signer_server::{Signer, SignerServer};
-use std::convert::TryFrom;
 use verify_response::Ver::Valid;
 
 #[derive(Default)]
 pub struct MySign {}
 
+// The following macros are written to minimize memory handling with [core::mem::transmute], and by
+// early return on error from the calling function to reduce repeated match branches that are
+// basically all the same
+
+#[macro_export]
+macro_rules! slice_as_array_transmute {
+    ($slice:expr) => {
+        ::core::mem::transmute($slice)
+    };
+}
+
+#[macro_export]
+macro_rules! slice_as {
+    ($slice:expr, $wrapper:ty ) => {{
+        unsafe fn this_transmute(
+            xs: &[u8],
+        ) -> &[u8; <$wrapper>::serialized_size()] {
+            slice_as_array_transmute!(xs.as_ptr())
+        }
+
+        let s: &[u8] = $slice;
+        if s.len() != <$wrapper>::serialized_size() {
+            return Err(Status::invalid_argument(
+                "provided vector is wrong length",
+            ));
+        } else {
+            match <$wrapper>::from_bytes(unsafe { this_transmute(s) }) {
+                Ok(v) => v,
+                Err(_) => {
+                    return Err(Status::invalid_argument(
+                        "unable to convert to type",
+                    ))
+                }
+            }
+        }
+    }};
+}
+
 #[tonic::async_trait]
 impl Signer for MySign {
     /// BLS12-381 Signer service implementation
-
     /// Generate a new BLS12-381 key pair
     async fn generate_keys(
         &self,
@@ -47,44 +83,8 @@ impl Signer for MySign {
     ) -> Result<Response<SignResponse>, Status> {
         // access the request parameters
         let req = request.get_ref();
-
-        // check the length of the secret key and convert to a fixed length array
-        let sk = match <&[u8; SecretKey::serialized_size()]>::try_from(
-            req.secret_key.as_slice(),
-        ) {
-            Ok(sk) => sk,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "provided secret key is wrong length",
-                ))
-            }
-        };
-
-        // create a new secret key from the provided bytes
-        // let sk = SecretKey::from_bytes(sk);
-        let sk = match SecretKey::from_bytes(sk) {
-            Ok(sk) => sk,
-            Err(_) => {
-                return Err(Status::invalid_argument(
-                    "error decoding secret key",
-                ))
-            }
-        };
-
-        // check the length of the public key and convert to fixed length array
-        let pk = match <&[u8; PublicKey::serialized_size()]>::try_from(
-            req.public_key.as_slice(),
-        ) {
-            Ok(pk) => pk,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
-        // create a new public key from the provided bytes
-        let pk = match PublicKey::from_bytes(pk) {
-            Ok(pk) => pk,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
+        let sk = slice_as!(req.secret_key.as_slice(), SecretKey);
+        let pk = slice_as!(req.public_key.as_slice(), PublicKey);
         // sign the message
         let res = ResponseSignature(
             sk.sign(&pk, req.message.as_slice()).to_bytes().to_vec(),
@@ -103,34 +103,8 @@ impl Signer for MySign {
     ) -> Result<Response<VerifyResponse>, Status> {
         // access the request parameters
         let req = request.get_ref();
-
-        // check length of public key and convert to fixed length array
-        let apk = match <&[u8; PublicKey::serialized_size()]>::try_from(
-            req.apk.as_slice(),
-        ) {
-            Ok(req) => req,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
-        // create new aggregated public key from provided bytes
-        let apk = match APK::from_bytes(apk) {
-            Ok(apk) => apk,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
-        // check length of signature and convert to fixed length array
-        let sig = match <&[u8; Signature::serialized_size()]>::try_from(
-            req.signature.as_slice(),
-        ) {
-            Ok(sig) => sig,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
-        // create signature from the provided bytes
-        let sig = match Signature::from_bytes(sig) {
-            Ok(sig) => sig,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
+        let apk = slice_as!(req.apk.as_slice(), APK);
+        let sig = slice_as!(req.signature.as_slice(), Signature);
 
         // verify the message matches the signature and the signature matches the
         // given public key
@@ -149,23 +123,9 @@ impl Signer for MySign {
     ) -> Result<Response<CreateApkResponse>, Status> {
         // access the request parameters
         let req = request.get_ref();
-
-        // check the length of the public key and convert to fixed length array
-        let pk = match <&[u8; PublicKey::serialized_size()]>::try_from(
-            req.public_key.as_slice(),
-        ) {
-            Ok(pk) => pk,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
-        // create a new public key from the provided bytes
-        let pk = match PublicKey::from_bytes(pk) {
-            Ok(pk) => pk,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
-        // convert public key to aggregated public key and return it
-        let apk = match APK::from_bytes(&pk.to_bytes()) {
+        let apk = slice_as!(req.public_key.as_slice(), APK);
+        // attempt to convert public key to aggregated public key
+        let apk = match APK::from_bytes(&apk.to_bytes()) {
             Ok(apk) => apk,
             Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
@@ -181,37 +141,13 @@ impl Signer for MySign {
     ) -> Result<Response<AggregateResponse>, Status> {
         // access the request parameters
         let req = request.get_ref();
-
-        // check length of public key and convert to fixed length array
-        let apk = match <&[u8; PublicKey::serialized_size()]>::try_from(
-            req.apk.as_slice(),
-        ) {
-            Ok(apk) => apk,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
-        // create new aggregated public key from provided bytes
-        let mut apk = match APK::from_bytes(apk) {
-            Ok(apk) => apk,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
+        let mut apk = slice_as!(req.apk.as_slice(), APK);
 
         // convert the raw bytes from the message to a collection of public keys
         let mut pks: Vec<PublicKey> = Vec::with_capacity(req.keys.len());
         for (i, key) in req.keys.iter().enumerate() {
-            // check the length of the public key and convert to fixed length array
-            let pk = match <&[u8; PublicKey::serialized_size()]>::try_from(
-                key.as_slice(),
-            ) {
-                Ok(pk) => pk,
-                Err(e) => return Err(Status::invalid_argument(e.to_string())),
-            };
-            // create a new public key from the provided bytes
-            let pk = match PublicKey::from_bytes(pk) {
-                Ok(pk) => pk,
-                Err(e) => return Err(Status::invalid_argument(e.to_string())),
-            };
-
+            // convert bytes to PublicKey
+            let pk = slice_as!(key.as_slice(), PublicKey);
             // add to collection of PublicKeys
             pks[i] = pk;
         }
@@ -232,39 +168,13 @@ impl Signer for MySign {
     ) -> Result<Response<AggregateResponse>, Status> {
         // access the request parameters
         let req = request.get_ref();
-
-        // check length of signature and convert to fixed length array
-        let sig = match <&[u8; Signature::serialized_size()]>::try_from(
-            req.signature.as_slice(),
-        ) {
-            Ok(sig) => sig,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
-        // create new aggregated signature from provided bytes
-        let sig = match Signature::from_bytes(sig) {
-            Ok(sig) => sig,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
+        let sig = slice_as!(req.signature.as_slice(), Signature);
 
         // convert the raw bytes from the message to a collection of signatures
         let mut sigs: Vec<Signature> = Vec::with_capacity(req.signatures.len());
         for (i, si) in req.signatures.iter().enumerate() {
-            // check the length of the signature and convert to fixed length array
-            let s = match <&[u8; Signature::serialized_size()]>::try_from(
-                si.as_slice(),
-            ) {
-                Ok(s) => s,
-                Err(e) => return Err(Status::invalid_argument(e.to_string())),
-            };
-            // create a new signature from the provided bytes
-            let s = match Signature::from_bytes(s) {
-                Ok(s) => s,
-                Err(e) => return Err(Status::invalid_argument(e.to_string())),
-            };
-
             // add to collection of Signature
-            sigs[i] = s;
+            sigs[i] = slice_as!(si, Signature);
         }
 
         // aggregate the signatures
