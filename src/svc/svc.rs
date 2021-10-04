@@ -8,7 +8,7 @@
 
 use tonic::{transport::Server, Request, Response, Status};
 
-tonic::include_proto!("bls12381sig");
+tonic::include_proto!("signer");
 
 use aggregate_response::Agg::Code;
 use create_apk_response::Apk::Apk;
@@ -200,3 +200,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn main() {
     panic!("Unix Domain Sockets can only be used on unix systems!");
 }
+
+#[cfg(tests)]
+mod tests {}
