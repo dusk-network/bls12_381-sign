@@ -196,7 +196,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let incoming = {
         async_stream::stream! {
-            while let item = uds.accept().map_ok(|(st, _)| unix::UnixStream(st)).await {
+            loop{
+                let item = uds.accept().map_ok(|(st, _)| unix::UnixStream(st)).await;
                 yield item;
             }
         }
@@ -218,9 +219,9 @@ fn main() {
 }
 
 #[cfg(tests)]
-mod tests {}
-
-#[tokio::test]
-async fn test_signer() {
-    eprintln!("hello world");
+mod tests {
+    #[tokio::test]
+    async fn test_signer() {
+        eprintln!("hello world");
+    }
 }
