@@ -10,6 +10,11 @@ tonic::include_proto!("signer");
 
 use clap::App;
 use signer_client::SignerClient;
+use std::convert::TryFrom;
+use tokio::io::AsyncWriteExt;
+use tokio::net::UnixStream;
+use tonic::transport::{Channel, Endpoint, Server, Uri};
+use tower::service_fn;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -55,14 +60,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let mut client = SignerClient::new(channel);
     println!("{:?}", matches);
     // creating a channel ie connection to server
-    let channel =
-        tonic::transport::Channel::from_static("http://127.0.0.1:9156")
-            .connect()
-            .await?;
+    // let channel =
+    //     tonic::transport::Channel::from_static("http://127.0.0.1:9156")
+    //         .connect()
+    //         .await?;
+    let path: &str = "/tmp/bls12381svc.sock";
+    let mut channel = UnixStream::connect(path).await.unwrap();
+
+    let channel = Endpoint::try_from("http://[::]:50051")
+        .expect("Serde error on addr reading")
+        .connect_with_connector(service_fn(move |_: Uri| {
+            UnixStream::connect(path)
+        }))
+        .await
+        .expect("Error generating a Channel");
+
     let mut client = SignerClient::new(channel);
     let request = tonic::Request::new(GenerateKeysRequest {});
     let response = client.generate_keys(request).await?;
     println!("Secret key {:?}", response.get_ref().secret_key);
     println!("Public key {:?}", response.get_ref().public_key);
+    // channel.shutdown();
     Ok(())
 }

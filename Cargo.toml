@@ -19,11 +19,15 @@ prost =  "0.8"
 rand = "0.7" # { version = "0.7", default-features = false }
 rand_core = { version = "0.6", default-features = false }
 thiserror = { version = "1.0", default-features = false }
-tokio =  {version = "1.0", features = ["macros", "rt-multi-thread", "fs"]}
+tokio =  {version = "1.12", features = ["macros", "rt-multi-thread", "fs"]}
 tonic =  "0.5"
+tower = "0.4"
 
 [build-dependencies]
 tonic-build = "0.5"
+
+[dev-dependencies]
+tower = "0.4"
 
 [lib]
 crate-type = ["rlib", "staticlib"]

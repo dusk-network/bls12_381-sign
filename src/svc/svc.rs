@@ -190,6 +190,7 @@ impl Signer for MySign {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path: &str = "/tmp/bls12381svc.sock";
     println!("listening on {}", path);
+    tokio::fs::remove_file(path).await?;
     tokio::fs::create_dir_all(Path::new(path).parent().unwrap()).await?;
 
     let uds = UnixListener::bind(path).unwrap();
