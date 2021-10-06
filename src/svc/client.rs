@@ -6,8 +6,10 @@
 
 #![cfg_attr(not(unix), allow(unused_imports))]
 
+tonic::include_proto!("signer");
+
 use clap::App;
-// use signer::{signer_client::SignerClient, GenerateKeysRequest};
+use signer_client::SignerClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -52,5 +54,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //         .await?;
     // let mut client = SignerClient::new(channel);
     println!("{:?}", matches);
+    // creating a channel ie connection to server
+    let channel =
+        tonic::transport::Channel::from_static("http://127.0.0.1:9156")
+            .connect()
+            .await?;
+    let mut client = SignerClient::new(channel);
+    let request = tonic::Request::new(GenerateKeysRequest {});
+    let response = client.generate_keys(request).await?;
+    println!("Secret key {:?}", response.get_ref().secret_key);
+    println!("Public key {:?}", response.get_ref().public_key);
     Ok(())
 }

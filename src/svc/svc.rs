@@ -6,15 +6,20 @@
 
 #![cfg_attr(not(unix), allow(unused_imports))]
 
-use tonic::{transport::Server, Request, Response, Status};
+#[cfg(unix)]
+mod unix;
 
 tonic::include_proto!("signer");
 
 use aggregate_response::Agg::Code;
 use create_apk_response::Apk::Apk;
 use dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK};
+use futures::TryFutureExt;
 use sign_response::Sig::Signature as ResponseSignature;
 use signer_server::{Signer, SignerServer};
+use std::path::Path;
+use tokio::net::UnixListener;
+use tonic::{transport::Server, Request, Response, Status};
 use verify_response::Ver::Valid;
 
 #[derive(Default)]
@@ -183,15 +188,26 @@ impl Signer for MySign {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // defining address for our service
-    let addr = "127.0.0.1:9156".parse().unwrap();
-    // creating a service
+    let path: &str = "/tmp/bls12381svc.sock";
+    println!("listening on {}", path);
+    tokio::fs::create_dir_all(Path::new(path).parent().unwrap()).await?;
+
+    let uds = UnixListener::bind(path).unwrap();
+
+    let incoming = {
+        async_stream::stream! {
+            while let item = uds.accept().map_ok(|(st, _)| unix::UnixStream(st)).await {
+                yield item;
+            }
+        }
+    };
     let signeur = MySign::default();
-    println!("Server listening on {}", addr);
+
+    let signer = SignerServer::new(signeur);
     // adding our service to our server.
     Server::builder()
-        .add_service(SignerServer::new(signeur))
-        .serve(addr)
+        .add_service(signer)
+        .serve_with_incoming(incoming)
         .await?;
     Ok(())
 }
@@ -203,3 +219,8 @@ fn main() {
 
 #[cfg(tests)]
 mod tests {}
+
+#[tokio::test]
+async fn test_signer() {
+    eprintln!("hello world");
+}
