@@ -17,11 +17,16 @@ use tonic::transport::server::Connected;
 #[derive(Debug)]
 pub struct UnixStream(pub tokio::net::UnixStream);
 
+#[derive(Clone)]
+pub struct UnixStreamConnectInfo {
+    // Metadata about your connection
+}
+
 impl Connected for UnixStream {
-    type ConnectInfo = ();
+    type ConnectInfo = UnixStreamConnectInfo;
 
     fn connect_info(&self) -> Self::ConnectInfo {
-        todo!()
+        UnixStreamConnectInfo {}
     }
 }
 

@@ -11,9 +11,14 @@ tonic::include_proto!("signer");
 use clap::App;
 use signer_client::SignerClient;
 use std::convert::TryFrom;
-use tokio::io::AsyncWriteExt;
+// use tokio::io::AsyncWriteExt;
 use tokio::net::UnixStream;
-use tonic::transport::{Channel, Endpoint, Server, Uri};
+use tonic::transport::{
+    // Channel,
+    Endpoint,
+    // Server,
+    Uri,
+};
 use tower::service_fn;
 
 #[tokio::main]
@@ -65,8 +70,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //         .connect()
     //         .await?;
     let path: &str = "/tmp/bls12381svc.sock";
-    let mut channel = UnixStream::connect(path).await.unwrap();
-
     let channel = Endpoint::try_from("http://[::]:50051")
         .expect("Serde error on addr reading")
         .connect_with_connector(service_fn(move |_: Uri| {
