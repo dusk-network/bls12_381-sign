@@ -24,7 +24,7 @@ pub use keys::{apk::APK, public::PublicKey, secret::SecretKey};
 pub use signature::Signature;
 
 // todo: this is commented out because it appears to already be defined in another place and causes
-//  the no-std tests to fail, which is just `cargo check --no-default-features and `std` is a
+//  the no-std tests to fail, which is just `cargo check --no-default-features` and `std` is a
 //  default feature
 //
 // #[cfg(not(feature = "std"))]

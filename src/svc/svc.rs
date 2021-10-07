@@ -26,6 +26,7 @@ use {
     verify_response::Ver::Valid,
 };
 
+#[cfg(std)]
 #[derive(Default)]
 pub struct MySign {}
 
@@ -227,7 +228,7 @@ fn main() {
 }
 
 #[cfg(not(std))]
-fn main() {
+pub fn main() {
     panic!("IPC service requires std feature")
 }
 

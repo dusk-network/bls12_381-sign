@@ -11,18 +11,24 @@ use std::{
     task::{Context, Poll},
 };
 
-use tokio::io::ReadBuf;
-use tokio::io::{AsyncRead, AsyncWrite};
-use tonic::transport::server::Connected;
+#[cfg(std)]
+use {
+    tokio::io::ReadBuf,
+    tokio::io::{AsyncRead, AsyncWrite},
+    tonic::transport::server::Connected,
+};
 
+#[cfg(std)]
 #[derive(Debug)]
 pub struct UnixStream(pub tokio::net::UnixStream);
 
+#[cfg(std)]
 #[derive(Clone)]
 pub struct UnixStreamConnectInfo {
     // Metadata about your connection
 }
 
+#[cfg(std)]
 impl Connected for UnixStream {
     type ConnectInfo = UnixStreamConnectInfo;
 
@@ -31,6 +37,7 @@ impl Connected for UnixStream {
     }
 }
 
+#[cfg(std)]
 impl AsyncRead for UnixStream {
     fn poll_read(
         mut self: Pin<&mut Self>,
@@ -41,6 +48,7 @@ impl AsyncRead for UnixStream {
     }
 }
 
+#[cfg(std)]
 impl AsyncWrite for UnixStream {
     fn poll_write(
         mut self: Pin<&mut Self>,
