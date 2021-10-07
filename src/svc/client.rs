@@ -2,25 +2,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
+
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 #![cfg_attr(not(unix), allow(unused_imports))]
 
+#[cfg(std)]
 tonic::include_proto!("signer");
 
-use clap::App;
-use signer_client::SignerClient;
-use std::convert::TryFrom;
-// use tokio::io::AsyncWriteExt;
-use tokio::net::UnixStream;
-use tonic::transport::{
-    // Channel,
-    Endpoint,
-    // Server,
-    Uri,
+#[cfg(std)]
+use {
+    clap::App,
+    signer_client::SignerClient,
+    std::convert::TryFrom,
+    tokio::net::UnixStream,
+    tonic::transport::{Endpoint, Uri},
+    tower::service_fn,
 };
-use tower::service_fn;
 
+#[cfg(std)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // define the command line parameters to call the bls12381svc
@@ -57,18 +57,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .arg("<signatures>... 'signatures to be merged into the first'")
       )
         .get_matches();
-    // // creating a channel ie connection to server
-    // let channel =
-    //     tonic::transport::Channel::from_static("http://127.0.0.1:9156")
-    //         .connect()
-    //         .await?;
-    // let mut client = SignerClient::new(channel);
     println!("{:?}", matches);
-    // creating a channel ie connection to server
-    // let channel =
-    //     tonic::transport::Channel::from_static("http://127.0.0.1:9156")
-    //         .connect()
-    //         .await?;
+
+    // create a channel to connect to the socket of the server
     let path: &str = "/tmp/bls12381svc.sock";
     let channel = Endpoint::try_from("http://[::]:50051")
         .expect("Serde error on addr reading")
@@ -79,10 +70,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("Error generating a Channel");
 
     let mut client = SignerClient::new(channel);
+    // here we are just making a token request and not formatting the output correctly
     let request = tonic::Request::new(GenerateKeysRequest {});
     let response = client.generate_keys(request).await?;
     println!("Secret key {:?}", response.get_ref().secret_key);
     println!("Public key {:?}", response.get_ref().public_key);
-    // channel.shutdown();
     Ok(())
+}
+
+#[cfg(not(std))]
+fn main() {
+    panic!("IPC service requires std feature")
 }

@@ -5,22 +5,26 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 #![cfg_attr(not(unix), allow(unused_imports))]
-
+#[cfg(std)]
 #[cfg(unix)]
 mod unix;
 
+#[cfg(std)]
 tonic::include_proto!("signer");
 
-use aggregate_response::Agg::Code;
-use create_apk_response::Apk::Apk;
-use dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK};
-use futures::TryFutureExt;
-use sign_response::Sig::Signature as ResponseSignature;
-use signer_server::{Signer, SignerServer};
-use std::path::Path;
-use tokio::net::UnixListener;
-use tonic::{transport::Server, Request, Response, Status};
-use verify_response::Ver::Valid;
+#[cfg(std)]
+use {
+    aggregate_response::Agg::Code,
+    create_apk_response::Apk::Apk,
+    dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK},
+    futures::TryFutureExt,
+    sign_response::Sig::Signature as ResponseSignature,
+    signer_server::{Signer, SignerServer},
+    std::path::Path,
+    tokio::net::UnixListener,
+    tonic::{transport::Server, Request, Response, Status},
+    verify_response::Ver::Valid,
+};
 
 #[derive(Default)]
 pub struct MySign {}
@@ -63,6 +67,7 @@ macro_rules! slice_as {
     }};
 }
 
+#[cfg(std)]
 #[tonic::async_trait]
 impl Signer for MySign {
     /// BLS12-381 Signer service implementation
@@ -186,6 +191,7 @@ impl Signer for MySign {
     }
 }
 
+#[cfg(std)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path: &str = "/tmp/bls12381svc.sock";
@@ -214,11 +220,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[cfg(std)]
 #[cfg(not(unix))]
 fn main() {
     panic!("Unix Domain Sockets can only be used on unix systems!");
 }
 
+#[cfg(not(std))]
+fn main() {
+    panic!("IPC service requires std feature")
+}
+
+#[cfg(std)]
 #[cfg(tests)]
 mod tests {
     #[tokio::test]

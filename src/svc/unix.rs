@@ -5,6 +5,7 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 #![cfg(not(target_os = "windows"))]
+#[cfg(std)]
 use std::{
     pin::Pin,
     task::{Context, Poll},
