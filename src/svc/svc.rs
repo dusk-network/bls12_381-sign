@@ -5,14 +5,13 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 #![cfg_attr(not(unix), allow(unused_imports))]
-#[cfg(std)]
+
 #[cfg(unix)]
 mod unix;
 
-#[cfg(std)]
 tonic::include_proto!("signer");
 
-#[cfg(std)]
+use std::process::exit;
 use {
     aggregate_response::Agg::Code,
     create_apk_response::Apk::Apk,
@@ -26,13 +25,12 @@ use {
     verify_response::Ver::Valid,
 };
 
-#[cfg(std)]
 #[derive(Default)]
 pub struct MySign {}
 
-// The following macros are written to minimize memory handling with [core::mem::transmute], and by
-// early return on error from the calling function to reduce repeated match branches that are
-// basically all the same
+/// The following macros are written to minimize memory handling with [core::mem::transmute], and by
+/// early return on error from the calling function to reduce repeated match branches that are
+/// basically all the same
 
 #[macro_export]
 macro_rules! slice_as_array_transmute {
@@ -68,7 +66,6 @@ macro_rules! slice_as {
     }};
 }
 
-#[cfg(std)]
 #[tonic::async_trait]
 impl Signer for MySign {
     /// BLS12-381 Signer service implementation
@@ -192,16 +189,27 @@ impl Signer for MySign {
     }
 }
 
-#[cfg(std)]
+extern crate ctrlc;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path: &str = "/tmp/bls12381svc.sock";
-    println!("listening on {}", path);
-    tokio::fs::remove_file(path).await?;
+    // in case the old one wasn't deleted
+    match std::fs::remove_file(path) {
+        Ok(_) => {
+            eprintln!("removed socket {}", path);
+        }
+        Err(_) => {}
+    };
+
+    // adding our service to our server.
+    let signeur = MySign::default();
+
+    let signer = SignerServer::new(signeur);
+
     tokio::fs::create_dir_all(Path::new(path).parent().unwrap()).await?;
-
+    eprintln!("created dir to listener socket {}", path);
     let uds = UnixListener::bind(path).unwrap();
-
     let incoming = {
         async_stream::stream! {
             loop{
@@ -210,33 +218,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     };
-    let signeur = MySign::default();
-
-    let signer = SignerServer::new(signeur);
-    // adding our service to our server.
+    println!("listening on {}", path);
+    ctrlc::set_handler(move || {
+        match std::fs::remove_file(path) {
+            Ok(_) => {
+                eprintln!("\nremoved socket {}", path);
+            }
+            Err(_) => {}
+        };
+        exit(0);
+    })?;
     Server::builder()
         .add_service(signer)
-        .serve_with_incoming(incoming)
+        .serve_with_incoming(incoming) // , rx)
         .await?;
     Ok(())
 }
 
-#[cfg(std)]
 #[cfg(not(unix))]
 fn main() {
     panic!("Unix Domain Sockets can only be used on unix systems!");
-}
-
-#[cfg(not(std))]
-pub fn main() {
-    panic!("IPC service requires std feature")
-}
-
-#[cfg(std)]
-#[cfg(tests)]
-mod tests {
-    #[tokio::test]
-    async fn test_signer() {
-        eprintln!("hello world");
-    }
 }
