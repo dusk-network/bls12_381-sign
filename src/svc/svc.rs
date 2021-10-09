@@ -6,12 +6,14 @@
 
 #![cfg_attr(not(unix), allow(unused_imports))]
 
+#[cfg(feature = "std")]
 #[cfg(unix)]
 mod unix;
 
+#[cfg(feature = "std")]
 tonic::include_proto!("signer");
 
-use std::process::exit;
+#[cfg(feature = "std")]
 use {
     aggregate_response::Agg::Code,
     create_apk_response::Apk::Apk,
@@ -20,11 +22,13 @@ use {
     sign_response::Sig::Signature as ResponseSignature,
     signer_server::{Signer, SignerServer},
     std::path::Path,
+    std::process::exit,
     tokio::net::UnixListener,
     tonic::{transport::Server, Request, Response, Status},
     verify_response::Ver::Valid,
 };
 
+#[cfg(feature = "std")]
 #[derive(Default)]
 pub struct MySign {}
 
@@ -32,6 +36,7 @@ pub struct MySign {}
 /// early return on error from the calling function to reduce repeated match branches that are
 /// basically all the same
 
+#[cfg(feature = "std")]
 #[macro_export]
 macro_rules! slice_as_array_transmute {
     ($slice:expr) => {
@@ -39,6 +44,7 @@ macro_rules! slice_as_array_transmute {
     };
 }
 
+#[cfg(feature = "std")]
 #[macro_export]
 macro_rules! slice_as {
     ($slice:expr, $wrapper:ty ) => {{
@@ -66,6 +72,7 @@ macro_rules! slice_as {
     }};
 }
 
+#[cfg(feature = "std")]
 #[tonic::async_trait]
 impl Signer for MySign {
     /// BLS12-381 Signer service implementation
@@ -189,8 +196,10 @@ impl Signer for MySign {
     }
 }
 
+#[cfg(feature = "std")]
 extern crate ctrlc;
 
+#[cfg(feature = "std")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path: &str = "/tmp/bls12381svc.sock";
@@ -238,4 +247,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(not(unix))]
 fn main() {
     panic!("Unix Domain Sockets can only be used on unix systems!");
+}
+
+#[cfg(not(feature = "std"))]
+fn main() {
+    panic!("std feature required");
 }
