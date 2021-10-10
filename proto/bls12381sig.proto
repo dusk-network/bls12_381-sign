@@ -6,6 +6,7 @@
 
 syntax = "proto3";
 package signer;
+option go_package = "github.com/dusk-network/bls12_381-sign/proto";
 
 enum Error {
   BLS_INVALID_BYTES = 0;
