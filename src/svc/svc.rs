@@ -143,8 +143,8 @@ impl Signer for MySign {
         eprintln!("svc: calling create_apk");
         // access the request parameters
         let req = request.get_ref();
-        let apk = slice_as!(req.public_key.as_slice(), APK);
-        // todo: is this optimal? Seems like there should be a direct APK->Apk transformation
+        let apk = slice_as!(req.public_key.as_slice(), PublicKey);
+        let apk = APK::from(&apk);
         Ok(Response::new(CreateApkResponse {
             apk: Some(Apk(apk.to_bytes().to_vec())),
         }))
@@ -162,8 +162,8 @@ impl Signer for MySign {
         // collect the list of public keys into a vector
         let mut pks: Vec<PublicKey> = Vec::with_capacity(req.keys.len());
         for (i, key) in req.keys.iter().enumerate() {
-           eprintln!("svc: adding pk: {} {:?}", i, key);
-         // add to collection of PublicKeys
+            eprintln!("svc: adding pk: {} {:?}", i, key);
+            // add to collection of PublicKeys
             pks[i] = slice_as!(key.as_slice(), PublicKey);
         }
 
