@@ -18,15 +18,15 @@ use {
     aggregate_response::Agg::Code,
     create_apk_response::Apk::Apk,
     dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK},
-    futures::TryFutureExt,
+    // futures::TryFutureExt,
     sign_response::Sig::Signature as ResponseSignature,
     signer_server::{Signer, SignerServer},
-    std::path::Path,
+    // std::path::Path,
     std::process::exit,
-    tokio::net::UnixListener,
+    // tokio::net::UnixListener,
     tonic::{transport::Server, Request, Response, Status},
     verify_response::Ver::Valid,
-    log,
+    // log,
 };
 
 #[cfg(feature = "std")]
@@ -82,7 +82,7 @@ impl Signer for MySign {
         &self,
         _request: Request<GenerateKeysRequest>,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
-        log::info!("calling generate_keys");
+        eprintln!("svc: calling generate_keys");
         // get a new random secret key from system entropy
         let sk = SecretKey::new(&mut rand_core::OsRng);
 
@@ -98,7 +98,7 @@ impl Signer for MySign {
         &self,
         request: Request<SignRequest>,
     ) -> Result<Response<SignResponse>, Status> {
-        log::info!("calling sign");
+        eprintln!("svc: calling sign");
         // access the request parameters
         let req = request.get_ref();
         let sk = slice_as!(req.secret_key.as_slice(), SecretKey);
@@ -119,7 +119,7 @@ impl Signer for MySign {
         &self,
         request: Request<VerifyRequest>,
     ) -> Result<Response<VerifyResponse>, Status> {
-        log::info!("calling verify");
+        eprintln!("svc: calling verify");
         // access the request parameters
         let req = request.get_ref();
         let apk = slice_as!(req.apk.as_slice(), APK);
@@ -140,7 +140,7 @@ impl Signer for MySign {
         &self,
         request: Request<CreateApkRequest>,
     ) -> Result<Response<CreateApkResponse>, Status> {
-        log::info!("calling create_apk");
+        eprintln!("svc: calling create_apk");
         // access the request parameters
         let req = request.get_ref();
         let apk = slice_as!(req.public_key.as_slice(), APK);
@@ -155,7 +155,7 @@ impl Signer for MySign {
         &self,
         request: Request<AggregatePkRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-        log::info!("calling aggregate_pk");
+        eprintln!("svc: calling aggregate_pk");
         // access the request parameters
         let req = request.get_ref();
         let mut apk = slice_as!(req.apk.as_slice(), APK);
@@ -180,7 +180,7 @@ impl Signer for MySign {
         &self,
         request: Request<AggregateSigRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-        log::info!("calling aggregate_sig");
+        eprintln!("svc: calling aggregate_sig");
         // access the request parameters
         let req = request.get_ref();
         let sig = slice_as!(req.signature.as_slice(), Signature);
@@ -205,52 +205,76 @@ impl Signer for MySign {
 #[cfg(feature = "std")]
 extern crate ctrlc;
 
+
 #[cfg(feature = "std")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("svc: starting bls12_381-sign ipc service");
-    let path: &str = "/tmp/bls12381svc.sock";
-    // in case the old one wasn't deleted
-    match std::fs::remove_file(path) {
-        Ok(_) => {
-            println!("svc: removed socket {}", path);
-        }
-        Err(_) => {}
-    };
+    let path = "127.0.0.1:9476".parse().unwrap();
 
     // adding our service to our server.
     let signeur = MySign::default();
 
     let signer = SignerServer::new(signeur);
 
-    tokio::fs::create_dir_all(Path::new(path).parent().unwrap()).await?;
-    println!("svc: created dir to listener socket {}", path);
-    let uds = UnixListener::bind(path).unwrap();
-    let incoming = {
-        async_stream::stream! {
-            loop{
-                let item = uds.accept().map_ok(|(st, _)| unix::UnixStream(st)).await;
-                println!("svc: received message");
-                yield item;
-            }
-        }
-    };
     println!("svc: listening on {}", path);
     ctrlc::set_handler(move || {
-        // match std::fs::remove_file(path) {
-        //     Ok(_) => {
-        //         println!("\nsvc: removed socket {}", path);
-        //     }
-        //     Err(_) => {}
-        // };
         exit(0);
     })?;
     Server::builder()
+        .accept_http1(false)
         .add_service(signer)
-        .serve_with_incoming(incoming) // , rx)
+        .serve(path)
         .await?;
     Ok(())
 }
+
+// #[cfg(feature = "std")]
+// #[tokio::main]
+// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//     println!("svc: starting bls12_381-sign ipc service");
+//     let path: &str = "/tmp/bls12381svc.sock";
+//     // in case the old one wasn't deleted
+//     match std::fs::remove_file(path) {
+//         Ok(_) => {
+//             println!("svc: removed socket {}", path);
+//         }
+//         Err(_) => {}
+//     };
+//
+//     // adding our service to our server.
+//     let signeur = MySign::default();
+//
+//     let signer = SignerServer::new(signeur);
+//
+//     tokio::fs::create_dir_all(Path::new(path).parent().unwrap()).await?;
+//     println!("svc: created dir to listener socket {}", path);
+//     let uds = UnixListener::bind(path).unwrap();
+//     let incoming = {
+//         async_stream::stream! {
+//             loop{
+//                 let item = uds.accept().map_ok(|(st, _)| unix::UnixStream(st)).await;
+//                 println!("svc: received message");
+//                 yield item;
+//             }
+//         }
+//     };
+//     println!("svc: listening on {}", path);
+//     ctrlc::set_handler(move || {
+//         match std::fs::remove_file(path) {
+//             Ok(_) => {
+//                 println!("\nsvc: removed socket {}", path);
+//             }
+//             Err(_) => {}
+//         };
+//         exit(0);
+//     })?;
+//     Server::builder()
+//         .add_service(signer)
+//         .serve_with_incoming(incoming) // , rx)
+//         .await?;
+//     Ok(())
+// }
 
 #[cfg(not(unix))]
 fn main() {

@@ -14,9 +14,9 @@ use {
     clap::App,
     signer_client::SignerClient,
     std::convert::TryFrom,
-    tokio::net::UnixStream,
-    tonic::transport::{Endpoint, Uri},
-    tower::service_fn,
+    // tokio::net::UnixStream,
+    tonic::transport::{Endpoint, /*Uri*/},
+    // tower::service_fn,
 };
 
 #[cfg(feature = "std")]
@@ -59,12 +59,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{:?}", matches);
 
     // create a channel to connect to the socket of the server
-    let path: &str = "/tmp/bls12381svc.sock";
-    let channel = Endpoint::try_from("http://[::]:50051")
-        .expect("Serde error on addr reading")
-        .connect_with_connector(service_fn(move |_: Uri| {
-            UnixStream::connect(path)
-        }))
+    // let path: &str = "/tmp/bls12381svc.sock";
+    // let channel = Endpoint::try_from("http://[::]:50051")
+    //     .expect("Serde error on addr reading")
+    //     .connect_with_connector(service_fn(move |_: Uri| {
+    //         UnixStream::connect(path)
+    //     }))
+    let channel = Endpoint::try_from("http://127.0.0.1:9476")
+        .expect("Error connecting to socket")
+        .connect()
         .await
         .expect("Error generating a Channel");
 
