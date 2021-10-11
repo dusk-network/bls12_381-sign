@@ -26,6 +26,7 @@ use {
     tokio::net::UnixListener,
     tonic::{transport::Server, Request, Response, Status},
     verify_response::Ver::Valid,
+    log,
 };
 
 #[cfg(feature = "std")]
@@ -35,7 +36,6 @@ pub struct MySign {}
 /// The following macros are written to minimize memory handling with [core::mem::transmute], and by
 /// early return on error from the calling function to reduce repeated match branches that are
 /// basically all the same
-
 #[cfg(feature = "std")]
 #[macro_export]
 macro_rules! slice_as_array_transmute {
@@ -82,6 +82,7 @@ impl Signer for MySign {
         &self,
         _request: Request<GenerateKeysRequest>,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
+        log::info!("calling generate_keys");
         // get a new random secret key from system entropy
         let sk = SecretKey::new(&mut rand_core::OsRng);
 
@@ -97,6 +98,7 @@ impl Signer for MySign {
         &self,
         request: Request<SignRequest>,
     ) -> Result<Response<SignResponse>, Status> {
+        log::info!("calling sign");
         // access the request parameters
         let req = request.get_ref();
         let sk = slice_as!(req.secret_key.as_slice(), SecretKey);
@@ -117,6 +119,7 @@ impl Signer for MySign {
         &self,
         request: Request<VerifyRequest>,
     ) -> Result<Response<VerifyResponse>, Status> {
+        log::info!("calling verify");
         // access the request parameters
         let req = request.get_ref();
         let apk = slice_as!(req.apk.as_slice(), APK);
@@ -137,6 +140,7 @@ impl Signer for MySign {
         &self,
         request: Request<CreateApkRequest>,
     ) -> Result<Response<CreateApkResponse>, Status> {
+        log::info!("calling create_apk");
         // access the request parameters
         let req = request.get_ref();
         let apk = slice_as!(req.public_key.as_slice(), APK);
@@ -151,6 +155,7 @@ impl Signer for MySign {
         &self,
         request: Request<AggregatePkRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
+        log::info!("calling aggregate_pk");
         // access the request parameters
         let req = request.get_ref();
         let mut apk = slice_as!(req.apk.as_slice(), APK);
@@ -175,6 +180,7 @@ impl Signer for MySign {
         &self,
         request: Request<AggregateSigRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
+        log::info!("calling aggregate_sig");
         // access the request parameters
         let req = request.get_ref();
         let sig = slice_as!(req.signature.as_slice(), Signature);
@@ -202,11 +208,12 @@ extern crate ctrlc;
 #[cfg(feature = "std")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("svc: starting bls12_381-sign ipc service");
     let path: &str = "/tmp/bls12381svc.sock";
     // in case the old one wasn't deleted
     match std::fs::remove_file(path) {
         Ok(_) => {
-            eprintln!("removed socket {}", path);
+            println!("svc: removed socket {}", path);
         }
         Err(_) => {}
     };
@@ -217,24 +224,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let signer = SignerServer::new(signeur);
 
     tokio::fs::create_dir_all(Path::new(path).parent().unwrap()).await?;
-    eprintln!("created dir to listener socket {}", path);
+    println!("svc: created dir to listener socket {}", path);
     let uds = UnixListener::bind(path).unwrap();
     let incoming = {
         async_stream::stream! {
             loop{
                 let item = uds.accept().map_ok(|(st, _)| unix::UnixStream(st)).await;
+                println!("svc: received message");
                 yield item;
             }
         }
     };
-    println!("listening on {}", path);
+    println!("svc: listening on {}", path);
     ctrlc::set_handler(move || {
-        match std::fs::remove_file(path) {
-            Ok(_) => {
-                eprintln!("\nremoved socket {}", path);
-            }
-            Err(_) => {}
-        };
+        // match std::fs::remove_file(path) {
+        //     Ok(_) => {
+        //         println!("\nsvc: removed socket {}", path);
+        //     }
+        //     Err(_) => {}
+        // };
         exit(0);
     })?;
     Server::builder()

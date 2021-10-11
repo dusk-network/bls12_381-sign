@@ -23,6 +23,7 @@ tokio =  {version = "1.12", features = ["macros", "rt-multi-thread", "fs"]}
 tonic =  "0.5"
 tower = "0.4"
 ctrlc = "3.1.1"
+log = "0.4"
 
 [build-dependencies]
 tonic-build = "0.5"
@@ -36,6 +37,10 @@ crate-type = ["rlib", "staticlib"]
 [[bin]]
 name = "bls12381svc"
 path = "src/svc/svc.rs"
+
+[[bin]]
+name = "bls12381cli"
+path = "src/svc/client.rs"
 
 [profile.dev]
 panic = "abort"
