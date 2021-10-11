@@ -162,7 +162,8 @@ impl Signer for MySign {
         // collect the list of public keys into a vector
         let mut pks: Vec<PublicKey> = Vec::with_capacity(req.keys.len());
         for (i, key) in req.keys.iter().enumerate() {
-            // add to collection of PublicKeys
+           eprintln!("svc: adding pk: {} {:?}", i, key);
+         // add to collection of PublicKeys
             pks[i] = slice_as!(key.as_slice(), PublicKey);
         }
 
