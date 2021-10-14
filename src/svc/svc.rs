@@ -47,7 +47,7 @@ macro_rules! slice_as_array_transmute {
 #[cfg(feature = "std")]
 #[macro_export]
 macro_rules! slice_as {
-    ($slice:expr, $wrapper:ty ) => {{
+    ($slice:expr, $wrapper:ty, $note:literal) => {{
         unsafe fn this_transmute(
             xs: &[u8],
         ) -> &[u8; <$wrapper>::serialized_size()] {
@@ -57,14 +57,18 @@ macro_rules! slice_as {
         let s: &[u8] = $slice;
         if s.len() != <$wrapper>::serialized_size() {
             return Err(Status::invalid_argument(
-                "provided vector is wrong length",
+                format!("{}: provided vector is wrong length: {} should be {}",
+                    $note,
+                    s.len(),
+                    <$wrapper>::serialized_size(),
+                ),
             ));
         } else {
             match <$wrapper>::from_bytes(unsafe { this_transmute(s) }) {
                 Ok(v) => v,
                 Err(_) => {
                     return Err(Status::invalid_argument(
-                        "unable to convert to type",
+                        format!("unable to convert to type {}", $note),
                     ))
                 }
             }
@@ -101,8 +105,8 @@ impl Signer for MySign {
         eprintln!("svc: calling sign");
         // access the request parameters
         let req = request.get_ref();
-        let sk = slice_as!(req.secret_key.as_slice(), SecretKey);
-        let pk = slice_as!(req.public_key.as_slice(), PublicKey);
+        let sk = slice_as!(req.secret_key.as_slice(), SecretKey, "SecretKey");
+        let pk = slice_as!(req.public_key.as_slice(), PublicKey, "PublicKey");
         // sign the message
         let res = ResponseSignature(
             sk.sign(&pk, req.message.as_slice()).to_bytes().to_vec(),
@@ -122,8 +126,8 @@ impl Signer for MySign {
         eprintln!("svc: calling verify");
         // access the request parameters
         let req = request.get_ref();
-        let apk = slice_as!(req.apk.as_slice(), APK);
-        let sig = slice_as!(req.signature.as_slice(), Signature);
+        let apk = slice_as!(req.apk.as_slice(), APK, "APK");
+        let sig = slice_as!(req.signature.as_slice(), Signature, "Signature");
 
         // verify the message matches the signature and the signature matches the
         // given public key
@@ -143,7 +147,7 @@ impl Signer for MySign {
         eprintln!("svc: calling create_apk");
         // access the request parameters
         let req = request.get_ref();
-        let apk = slice_as!(req.public_key.as_slice(), PublicKey);
+        let apk = slice_as!(req.public_key.as_slice(), PublicKey, "PublicKey");
         let apk = APK::from(&apk);
         Ok(Response::new(CreateApkResponse {
             apk: Some(Apk(apk.to_bytes().to_vec())),
@@ -158,17 +162,17 @@ impl Signer for MySign {
         eprintln!("svc: calling aggregate_pk");
         // access the request parameters
         let req = request.get_ref();
-        let mut apk = slice_as!(req.apk.as_slice(), APK);
+        // get the apk first
+        let apk = slice_as!(&req.apk, PublicKey, "PublicKey");
+        let mut apk = APK::from(&apk);
+        let pks = &mut Vec::with_capacity(req.keys.len());
         // collect the list of public keys into a vector
-        let mut pks: Vec<PublicKey> = Vec::with_capacity(req.keys.len());
-        for (i, key) in req.keys.iter().enumerate() {
-            eprintln!("svc: adding pk: {} {:?}", i, key);
-            // add to collection of PublicKeys
-            pks[i] = slice_as!(key.as_slice(), PublicKey);
+        for elem in &req.keys {
+            pks.push(slice_as!(&elem, PublicKey, "PublicKey"));
         }
 
         // aggregate the keys
-        apk.aggregate(&pks.as_slice());
+        apk.aggregate(&pks);
 
         // convert public key to aggregated public key and return it
         Ok(Response::new(AggregateResponse {
@@ -184,17 +188,18 @@ impl Signer for MySign {
         eprintln!("svc: calling aggregate_sig");
         // access the request parameters
         let req = request.get_ref();
-        let sig = slice_as!(req.signature.as_slice(), Signature);
+        eprintln!("parameters: {:?}", req);
+        let sig = slice_as!(req.signature.as_slice(), Signature, "Signature");
 
         // convert the raw bytes from the message to a collection of signatures
-        let mut sigs: Vec<Signature> = Vec::with_capacity(req.signatures.len());
-        for (i, si) in req.signatures.iter().enumerate() {
-            // add to collection of Signature
-            sigs[i] = slice_as!(si, Signature);
+        let mut sigs:Vec<Signature> = Vec::with_capacity(req.signatures.len());
+        // collect the list of public keys into a vector
+        for elem in &req.signatures {
+            sigs.push(slice_as!(&elem, Signature, "Signature"));
         }
 
         // aggregate the signatures
-        sig.aggregate(&sigs.as_slice());
+        sig.aggregate(&sigs);
 
         // convert aggregate signature to bytes and return
         Ok(Response::new(AggregateResponse {
@@ -229,53 +234,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
     Ok(())
 }
-
-// #[cfg(feature = "std")]
-// #[tokio::main]
-// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//     println!("svc: starting bls12_381-sign ipc service");
-//     let path: &str = "/tmp/bls12381svc.sock";
-//     // in case the old one wasn't deleted
-//     match std::fs::remove_file(path) {
-//         Ok(_) => {
-//             println!("svc: removed socket {}", path);
-//         }
-//         Err(_) => {}
-//     };
-//
-//     // adding our service to our server.
-//     let signeur = MySign::default();
-//
-//     let signer = SignerServer::new(signeur);
-//
-//     tokio::fs::create_dir_all(Path::new(path).parent().unwrap()).await?;
-//     println!("svc: created dir to listener socket {}", path);
-//     let uds = UnixListener::bind(path).unwrap();
-//     let incoming = {
-//         async_stream::stream! {
-//             loop{
-//                 let item = uds.accept().map_ok(|(st, _)| unix::UnixStream(st)).await;
-//                 println!("svc: received message");
-//                 yield item;
-//             }
-//         }
-//     };
-//     println!("svc: listening on {}", path);
-//     ctrlc::set_handler(move || {
-//         match std::fs::remove_file(path) {
-//             Ok(_) => {
-//                 println!("\nsvc: removed socket {}", path);
-//             }
-//             Err(_) => {}
-//         };
-//         exit(0);
-//     })?;
-//     Server::builder()
-//         .add_service(signer)
-//         .serve_with_incoming(incoming) // , rx)
-//         .await?;
-//     Ok(())
-// }
 
 #[cfg(not(unix))]
 fn main() {
