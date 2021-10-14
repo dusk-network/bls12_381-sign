@@ -61,7 +61,7 @@ impl APK {
         Ok(APK(PublicKey::from_bytes(bytes)?))
     }
 
-    /// Return the amount of bytes needed to serialize a [`SecretKey`].
+    /// Return the amount of bytes needed to serialize a [`APK`].
     pub const fn serialized_size() -> usize {
         96
     }
