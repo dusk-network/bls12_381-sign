@@ -164,19 +164,18 @@ impl Signer for MySign {
         let req = request.get_ref();
         // get the apk first
         let apk = slice_as!(&req.apk, PublicKey, "PublicKey");
-        let mut apk = APK::from(&apk);
-        let pks = &mut Vec::with_capacity(req.keys.len());
+        let mut apk = APK::from_bytes(&apk.to_bytes()).unwrap();
         // collect the list of public keys into a vector
+        let mut pks = Vec::with_capacity(req.keys.len());
         for elem in &req.keys {
             pks.push(slice_as!(&elem, PublicKey, "PublicKey"));
         }
-
         // aggregate the keys
         apk.aggregate(&pks);
-
+        let bytes = apk.to_bytes();
         // convert public key to aggregated public key and return it
         Ok(Response::new(AggregateResponse {
-            agg: Some(Code(apk.to_bytes().into())),
+            agg: Some(Code(bytes.into())),
         }))
     }
 
@@ -197,13 +196,18 @@ impl Signer for MySign {
         for elem in &req.signatures {
             sigs.push(slice_as!(&elem, Signature, "Signature"));
         }
+        eprintln!("signatures: {:?}", &sigs);
 
         // aggregate the signatures
-        sig.aggregate(&sigs);
+        let sig = sig.aggregate(&sigs);
+        eprintln!("aggregated: {:?}", &sigs);
+
+        let bytes = sig.to_bytes().into();
+        eprintln!("signature as bytes {:?}", bytes);
 
         // convert aggregate signature to bytes and return
         Ok(Response::new(AggregateResponse {
-            agg: Some(Code(sig.to_bytes().into())),
+            agg: Some(Code(bytes)),
         }))
     }
 }
