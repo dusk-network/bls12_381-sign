@@ -56,20 +56,20 @@ macro_rules! slice_as {
 
         let s: &[u8] = $slice;
         if s.len() != <$wrapper>::serialized_size() {
-            return Err(Status::invalid_argument(
-                format!("{}: provided vector is wrong length: {} should be {}",
-                    $note,
-                    s.len(),
-                    <$wrapper>::serialized_size(),
-                ),
-            ));
+            return Err(Status::invalid_argument(format!(
+                "{}: provided vector is wrong length: {} should be {}",
+                $note,
+                s.len(),
+                <$wrapper>::serialized_size(),
+            )));
         } else {
             match <$wrapper>::from_bytes(unsafe { this_transmute(s) }) {
                 Ok(v) => v,
                 Err(_) => {
-                    return Err(Status::invalid_argument(
-                        format!("unable to convert to type {}", $note),
-                    ))
+                    return Err(Status::invalid_argument(format!(
+                        "unable to convert to type {}",
+                        $note
+                    )))
                 }
             }
         }
@@ -192,7 +192,7 @@ impl Signer for MySign {
         let sig = slice_as!(req.signature.as_slice(), Signature, "Signature");
 
         // convert the raw bytes from the message to a collection of signatures
-        let mut sigs:Vec<Signature> = Vec::with_capacity(req.signatures.len());
+        let mut sigs: Vec<Signature> = Vec::with_capacity(req.signatures.len());
         // collect the list of public keys into a vector
         for elem in &req.signatures {
             sigs.push(slice_as!(&elem, Signature, "Signature"));
@@ -210,7 +210,6 @@ impl Signer for MySign {
 
 #[cfg(feature = "std")]
 extern crate ctrlc;
-
 
 #[cfg(feature = "std")]
 #[tokio::main]

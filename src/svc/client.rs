@@ -15,7 +15,7 @@ use {
     signer_client::SignerClient,
     std::convert::TryFrom,
     // tokio::net::UnixStream,
-    tonic::transport::{Endpoint, /*Uri*/},
+    tonic::transport::Endpoint,
     // tower::service_fn,
 };
 
