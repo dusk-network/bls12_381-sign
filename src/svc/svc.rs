@@ -86,7 +86,6 @@ impl Signer for MySign {
         &self,
         _request: Request<GenerateKeysRequest>,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
-        eprintln!("svc: calling generate_keys");
         // get a new random secret key from system entropy
         let sk = SecretKey::new(&mut rand_core::OsRng);
 
@@ -102,7 +101,6 @@ impl Signer for MySign {
         &self,
         request: Request<SignRequest>,
     ) -> Result<Response<SignResponse>, Status> {
-        eprintln!("svc: calling sign");
         // access the request parameters
         let req = request.get_ref();
         let sk = slice_as!(req.secret_key.as_slice(), SecretKey, "SecretKey");
@@ -123,7 +121,6 @@ impl Signer for MySign {
         &self,
         request: Request<VerifyRequest>,
     ) -> Result<Response<VerifyResponse>, Status> {
-        eprintln!("svc: calling verify");
         // access the request parameters
         let req = request.get_ref();
         let apk = slice_as!(req.apk.as_slice(), APK, "APK");
@@ -144,7 +141,6 @@ impl Signer for MySign {
         &self,
         request: Request<CreateApkRequest>,
     ) -> Result<Response<CreateApkResponse>, Status> {
-        eprintln!("svc: calling create_apk");
         // access the request parameters
         let req = request.get_ref();
         let apk = slice_as!(req.public_key.as_slice(), PublicKey, "PublicKey");
@@ -159,7 +155,6 @@ impl Signer for MySign {
         &self,
         request: Request<AggregatePkRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-        eprintln!("svc: calling aggregate_pk");
         // access the request parameters
         let req = request.get_ref();
         // get the apk first
@@ -184,10 +179,8 @@ impl Signer for MySign {
         &self,
         request: Request<AggregateSigRequest>,
     ) -> Result<Response<AggregateResponse>, Status> {
-        eprintln!("svc: calling aggregate_sig");
         // access the request parameters
         let req = request.get_ref();
-        eprintln!("parameters: {:?}", req);
         let sig = slice_as!(req.signature.as_slice(), Signature, "Signature");
 
         // convert the raw bytes from the message to a collection of signatures
@@ -196,14 +189,11 @@ impl Signer for MySign {
         for elem in &req.signatures {
             sigs.push(slice_as!(&elem, Signature, "Signature"));
         }
-        eprintln!("signatures: {:?}", &sigs);
 
         // aggregate the signatures
         let sig = sig.aggregate(&sigs);
-        eprintln!("aggregated: {:?}", &sigs);
 
         let bytes = sig.to_bytes().into();
-        eprintln!("signature as bytes {:?}", bytes);
 
         // convert aggregate signature to bytes and return
         Ok(Response::new(AggregateResponse {
@@ -218,7 +208,6 @@ extern crate ctrlc;
 #[cfg(feature = "std")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("svc: starting bls12_381-sign ipc service");
     let path = "127.0.0.1:9476".parse().unwrap();
 
     // adding our service to our server.
@@ -226,7 +215,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let signer = SignerServer::new(signeur);
 
-    println!("svc: listening on {}", path);
     ctrlc::set_handler(move || {
         exit(0);
     })?;
