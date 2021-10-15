@@ -18,12 +18,12 @@ use {
     aggregate_response::Agg::Code,
     create_apk_response::Apk::Apk,
     dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK},
-    // futures::TryFutureExt,
+    futures::TryFutureExt,
     sign_response::Sig::Signature as ResponseSignature,
     signer_server::{Signer, SignerServer},
     // std::path::Path,
     std::process::exit,
-    // tokio::net::UnixListener,
+    tokio::net::UnixListener,
     tonic::{transport::Server, Request, Response, Status},
     verify_response::Ver::Valid,
     // log,
@@ -205,23 +205,37 @@ impl Signer for MySign {
 #[cfg(feature = "std")]
 extern crate ctrlc;
 
+/// Default UDS path that Rusk GRPC-server will connect to.
+pub const SOCKET_PATH: &str = "/tmp/bls12381svc.sock";
+
 #[cfg(feature = "std")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let path = "127.0.0.1:9476".parse().unwrap();
+    // let path = "127.0.0.1:9476".parse().unwrap();
+    let path = SOCKET_PATH;
+    let uds = UnixListener::bind(path)?;
 
     // adding our service to our server.
     let signeur = MySign::default();
 
     let signer = SignerServer::new(signeur);
 
+    let incoming = {
+        async_stream::stream! {
+            while let item = uds.accept().map_ok(|(st, _)| unix::UnixStream(st)).await {
+                yield item;
+            }
+        }
+    };
+
     ctrlc::set_handler(move || {
         exit(0);
     })?;
     Server::builder()
-        .accept_http1(false)
+        // .accept_http1(false)
         .add_service(signer)
-        .serve(path)
+        // .serve(path)
+        .serve_with_incoming(incoming)
         .await?;
     Ok(())
 }
