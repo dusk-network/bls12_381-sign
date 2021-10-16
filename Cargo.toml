@@ -16,7 +16,7 @@ dusk-bytes = "0.1.4"
 futures = { version = "0.3", default-features = false, features = ["alloc"] }
 libc = "0.2"
 prost =  "0.8"
-rand = "0.7" # { version = "0.7", default-features = false }
+rand = "0.8" # { version = "0.7", default-features = false }
 rand_core = { version = "0.6", default-features = false }
 thiserror = { version = "1.0", default-features = false }
 tokio =  {version = "1.12", features = ["macros", "rt-multi-thread", "fs"]}

@@ -103,11 +103,11 @@ impl Signer for MySign {
     ) -> Result<Response<SignResponse>, Status> {
         // access the request parameters
         let req = request.get_ref();
-        let sk = slice_as!(req.secret_key.as_slice(), SecretKey, "SecretKey");
-        let pk = slice_as!(req.public_key.as_slice(), PublicKey, "PublicKey");
+        let sk = slice_as!(&req.secret_key, SecretKey, "SecretKey");
+        let pk = slice_as!(&req.public_key, PublicKey, "PublicKey");
         // sign the message
         let res = ResponseSignature(
-            sk.sign(&pk, req.message.as_slice()).to_bytes().to_vec(),
+            sk.sign(&pk, &req.message).to_bytes().to_vec(),
         );
 
         // return the signature wrapped in the response type
@@ -123,8 +123,8 @@ impl Signer for MySign {
     ) -> Result<Response<VerifyResponse>, Status> {
         // access the request parameters
         let req = request.get_ref();
-        let apk = slice_as!(req.apk.as_slice(), APK, "APK");
-        let sig = slice_as!(req.signature.as_slice(), Signature, "Signature");
+        let apk = slice_as!(&req.apk, APK, "APK");
+        let sig = slice_as!(&req.signature, Signature, "Signature");
 
         // verify the message matches the signature and the signature matches the
         // given public key
@@ -143,7 +143,7 @@ impl Signer for MySign {
     ) -> Result<Response<CreateApkResponse>, Status> {
         // access the request parameters
         let req = request.get_ref();
-        let apk = slice_as!(req.public_key.as_slice(), PublicKey, "PublicKey");
+        let apk = slice_as!(&req.public_key, PublicKey, "PublicKey");
         let apk = APK::from(&apk);
         Ok(Response::new(CreateApkResponse {
             apk: Some(Apk(apk.to_bytes().to_vec())),
@@ -181,7 +181,7 @@ impl Signer for MySign {
     ) -> Result<Response<AggregateResponse>, Status> {
         // access the request parameters
         let req = request.get_ref();
-        let sig = slice_as!(req.signature.as_slice(), Signature, "Signature");
+        let sig = slice_as!(&req.signature, Signature, "Signature");
 
         // convert the raw bytes from the message to a collection of signatures
         let mut sigs: Vec<Signature> = Vec::with_capacity(req.signatures.len());
