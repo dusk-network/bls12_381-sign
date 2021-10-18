@@ -71,6 +71,16 @@ impl PublicKey {
         ))
     }
 
+    pub fn to_raw_bytes(&self) -> [u8; G2Affine::RAW_SIZE] {
+        self.0.to_raw_bytes()
+    }
+
+    pub fn from_raw_bytes(
+        bytes: &[u8; G2Affine::RAW_SIZE],
+    ) -> Result<Self, Error> {
+        unsafe { Ok(Self(G2Affine::from_slice_unchecked(bytes))) }
+    }
+
     /// Return the amount of bytes needed to serialize a [`PublicKey`].
     pub const fn serialized_size() -> usize {
         96
