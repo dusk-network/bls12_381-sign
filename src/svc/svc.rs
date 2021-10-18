@@ -106,9 +106,8 @@ impl Signer for MySign {
         let sk = slice_as!(&req.secret_key, SecretKey, "SecretKey");
         let pk = slice_as!(&req.public_key, PublicKey, "PublicKey");
         // sign the message
-        let res = ResponseSignature(
-            sk.sign(&pk, &req.message).to_bytes().to_vec(),
-        );
+        let res =
+            ResponseSignature(sk.sign(&pk, &req.message).to_bytes().to_vec());
 
         // return the signature wrapped in the response type
         Ok(Response::new(SignResponse {
