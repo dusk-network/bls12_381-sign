@@ -166,10 +166,10 @@ impl Signer for MySign {
         }
         // aggregate the keys
         apk.aggregate(&pks);
-        let bytes = apk.to_bytes();
+        let bytes = &apk.to_bytes();
         // convert public key to aggregated public key and return it
         Ok(Response::new(AggregateResponse {
-            agg: Some(Code(bytes.into())),
+            agg: Some(Code(bytes.to_vec())),
         }))
     }
 
@@ -192,11 +192,11 @@ impl Signer for MySign {
         // aggregate the signatures
         let sig = sig.aggregate(&sigs);
 
-        let bytes = sig.to_bytes().into();
+        let bytes = Code(sig.to_bytes().to_vec());
 
         // convert aggregate signature to bytes and return
         Ok(Response::new(AggregateResponse {
-            agg: Some(Code(bytes)),
+            agg: Some(bytes),
         }))
     }
 }
