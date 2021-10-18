@@ -71,6 +71,12 @@ impl PublicKey {
         ))
     }
 
+    pub fn from_slice_unchecked(
+        bytes: &[u8; PublicKey::serialized_size()],
+    ) -> Result<Self, Error> {
+        unsafe { Ok(Self(G2Affine::from_slice_unchecked(bytes))) }
+    }
+
     /// Return the amount of bytes needed to serialize a [`PublicKey`].
     pub const fn serialized_size() -> usize {
         96
