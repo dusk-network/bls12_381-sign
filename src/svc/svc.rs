@@ -195,9 +195,7 @@ impl Signer for MySign {
         let bytes = Code(sig.to_bytes().to_vec());
 
         // convert aggregate signature to bytes and return
-        Ok(Response::new(AggregateResponse {
-            agg: Some(bytes),
-        }))
+        Ok(Response::new(AggregateResponse { agg: Some(bytes) }))
     }
 }
 
