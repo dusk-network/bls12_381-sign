@@ -33,10 +33,10 @@ impl From<&SecretKey> for PublicKey {
     }
 }
 
+#[cfg(feature = "std")]
 impl PublicKey {
     /// Verify a [`Signature`] by comparing the results of the two pairing
     /// operations: e(sig, g_2) == e(Hₒ(m), pk).
-    #[cfg(feature = "std")]
     pub fn verify(&self, sig: &Signature, msg: &[u8]) -> Result<(), Error> {
         let h0m = h0(msg);
         let p1 = dusk_bls12_381::pairing(&sig.0, &G2Affine::generator());
@@ -50,7 +50,6 @@ impl PublicKey {
     }
 
     /// Return pk * t, where t is H_(pk).
-    #[cfg(feature = "std")]
     pub fn pk_t(&self) -> G2Affine {
         let t = h1(self);
         let gx = self.0 * t;
