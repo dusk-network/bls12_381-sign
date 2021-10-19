@@ -188,6 +188,7 @@ impl Signer for MySign {
     }
 }
 
+#[cfg(feature = "std")]
 impl MySign {
     fn slice_to_fixed<const N: usize>(s: &[u8]) -> Result<[u8; N], Status> {
         if s.len() != N {
@@ -278,7 +279,8 @@ impl MySign {
 #[cfg(feature = "std")]
 extern crate ctrlc;
 
-/// Default UDS path that Rusk GRPC-server will connect to.
+#[cfg(feature = "std")]
+/// Default UDS path that BLS12-381 GRPC-server will connect to.
 pub const SOCKET_PATH: &str = "/tmp/bls12381svc.sock";
 
 #[cfg(feature = "std")]
@@ -324,8 +326,10 @@ fn main() {
     panic!("std feature required");
 }
 
+#[cfg(feature = "std")]
 extern crate test;
 
+#[cfg(feature = "std")]
 #[cfg(test)]
 mod benches_svc {
     use dusk_bls12_381_sign::{PublicKey, SecretKey};
@@ -390,6 +394,7 @@ mod benches_svc {
     }
 }
 
+#[cfg(feature = "std")]
 #[cfg(test)]
 mod tests_svc {
     use crate::*;
