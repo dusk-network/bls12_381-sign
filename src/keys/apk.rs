@@ -11,6 +11,7 @@ use crate::{Error, PublicKey};
 // use canonical::Canon;
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
+use dusk_bls12_381::G2Affine;
 #[cfg(feature = "std")]
 use dusk_bls12_381::G2Projective;
 
@@ -64,5 +65,14 @@ impl APK {
     /// Return the amount of bytes needed to serialize a [`APK`].
     pub const fn serialized_size() -> usize {
         96
+    }
+    pub fn to_raw_bytes(&self) -> [u8; G2Affine::RAW_SIZE] {
+        self.0.to_raw_bytes()
+    }
+
+    pub fn from_raw_bytes(
+        bytes: &[u8; G2Affine::RAW_SIZE],
+    ) -> Result<Self, Error> {
+        Ok(APK(PublicKey::from_raw_bytes(bytes)?))
     }
 }
