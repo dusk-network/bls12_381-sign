@@ -74,7 +74,7 @@ impl PublicKey {
         self.0.to_raw_bytes()
     }
 
-    pub fn from_raw_bytes(
+    pub fn from_raw_bytes_unchecked(
         bytes: &[u8; G2Affine::RAW_SIZE],
     ) -> Result<Self, Error> {
         unsafe { Ok(Self(G2Affine::from_slice_unchecked(bytes))) }

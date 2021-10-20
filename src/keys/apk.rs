@@ -70,9 +70,9 @@ impl APK {
         self.0.to_raw_bytes()
     }
 
-    pub fn from_raw_bytes(
+    pub fn from_raw_bytes_unchecked(
         bytes: &[u8; G2Affine::RAW_SIZE],
     ) -> Result<Self, Error> {
-        Ok(APK(PublicKey::from_raw_bytes(bytes)?))
+        Ok(APK(PublicKey::from_raw_bytes_unchecked(bytes)?))
     }
 }

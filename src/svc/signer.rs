@@ -86,7 +86,7 @@ impl BlsSigner {
     async fn public_from_cache(&self, pk: &[u8]) -> Result<PublicKey, Status> {
         let pk = BlsSigner::slice_to_fixed(pk)?;
         if let Some(o) = self.cache.read().await.get(&pk) {
-            return PublicKey::from_raw_bytes(o).map_err(|_| {
+            return PublicKey::from_raw_bytes_unchecked(o).map_err(|_| {
                 Status::invalid_argument("Invalid raw public key")
             });
         };
@@ -99,7 +99,7 @@ impl BlsSigner {
     async fn apk_from_cache(&self, apk: &[u8]) -> Result<APK, Status> {
         let apk_bytes = BlsSigner::slice_to_fixed(apk)?;
         if let Some(o) = self.cache.read().await.get(&apk_bytes) {
-            return APK::from_raw_bytes(o).map_err(|_| {
+            return APK::from_raw_bytes_unchecked(o).map_err(|_| {
                 Status::invalid_argument("Invalid raw aggregated public key")
             });
         };
@@ -272,7 +272,7 @@ mod svc {
             let sk = SecretKey::new(&mut rand::thread_rng());
             let raw = PublicKey::from(&sk).to_raw_bytes().to_vec();
             b.iter(|| {
-                PublicKey::from_raw_bytes(
+                PublicKey::from_raw_bytes_unchecked(
                     &BlsSigner::slice_to_fixed(&raw).unwrap(),
                 )
             });
