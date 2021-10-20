@@ -86,20 +86,30 @@ impl BlsSigner {
     async fn public_from_cache(&self, pk: &[u8]) -> Result<PublicKey, Status> {
         let pk = BlsSigner::slice_to_fixed(pk)?;
         if let Some(o) = self.cache.read().await.get(&pk) {
-            return BlsSigner::public_from_raw_unchecked(o);
+            return PublicKey::from_raw_bytes(o).map_err(|_| {
+                Status::invalid_argument("Invalid raw public key")
+            });
         };
-        let key = BlsSigner::public_from(&pk)?;
+        let key = PublicKey::from_bytes(&pk)
+            .map_err(|_| Status::invalid_argument("Invalid public key"))?;
         self.cache.write().await.insert(pk, key.to_raw_bytes());
         Ok(key)
     }
 
     async fn apk_from_cache(&self, apk: &[u8]) -> Result<APK, Status> {
-        let pk = BlsSigner::slice_to_fixed(apk)?;
-        if let Some(o) = self.cache.read().await.get(&pk) {
-            return BlsSigner::apk_from_raw_unchecked(o);
+        let apk_bytes = BlsSigner::slice_to_fixed(apk)?;
+        if let Some(o) = self.cache.read().await.get(&apk_bytes) {
+            return APK::from_raw_bytes(o).map_err(|_| {
+                Status::invalid_argument("Invalid raw aggregated public key")
+            });
         };
-        let key = BlsSigner::apk_from(&pk)?;
-        self.cache.write().await.insert(pk, key.to_raw_bytes());
+        let key = APK::from_bytes(&apk_bytes).map_err(|_| {
+            Status::invalid_argument("Invalid aggregated public key")
+        })?;
+        self.cache
+            .write()
+            .await
+            .insert(apk_bytes, key.to_raw_bytes());
         Ok(key)
     }
 
@@ -115,38 +125,6 @@ impl BlsSigner {
             a.copy_from_slice(s);
             Ok(a)
         }
-    }
-
-    fn signature_from_bytes(s: &[u8]) -> Result<Signature, Status> {
-        let sig_bytes = BlsSigner::slice_to_fixed(s)?;
-        Signature::from_bytes(&sig_bytes)
-            .map_err(|_| Status::invalid_argument("Invalid signature bytes"))
-    }
-
-    fn public_from_raw_unchecked(s: &[u8]) -> Result<PublicKey, Status> {
-        let pk_bytes = BlsSigner::slice_to_fixed(s)?;
-        PublicKey::from_raw_bytes(&pk_bytes)
-            .map_err(|_| Status::invalid_argument("Invalid raw public key"))
-    }
-
-    fn apk_from_raw_unchecked(s: &[u8]) -> Result<APK, Status> {
-        let pk_bytes = BlsSigner::slice_to_fixed(s)?;
-        APK::from_raw_bytes(&pk_bytes).map_err(|_| {
-            Status::invalid_argument("Invalid raw aggregated public key")
-        })
-    }
-
-    fn public_from(s: &[u8]) -> Result<PublicKey, Status> {
-        let pk_bytes = BlsSigner::slice_to_fixed(s)?;
-        PublicKey::from_bytes(&pk_bytes)
-            .map_err(|_| Status::invalid_argument("Invalid public key"))
-    }
-
-    fn apk_from(s: &[u8]) -> Result<APK, Status> {
-        let pk_bytes = BlsSigner::slice_to_fixed(s)?;
-        APK::from_bytes(&pk_bytes).map_err(|_| {
-            Status::invalid_argument("Invalid aggregated public key")
-        })
     }
 
     /// Generate a new BLS12-381 key pair
@@ -188,7 +166,7 @@ impl BlsSigner {
         // access the request parameters
         let req = request.get_ref();
         let apk = self.apk_from_cache(&req.apk).await?;
-        let sig = BlsSigner::signature_from_bytes(&req.signature)?;
+        let sig = slice_as!(&req.signature, Signature, "Signature")?;
 
         // verify the message matches the signature and the signature matches the
         // given public key
@@ -271,68 +249,11 @@ mod svc {
     pub use crate::*;
     pub use dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK};
     pub use rand::RngCore;
-    // mod test {
-    //     pub use super::*;
-    //     extern crate async_std;
-    //     #[test]
-    //     fn sign_verify() {
-    //         let signer = BlsSigner::default();
-    //         let sk = SecretKey::new(&mut rand::thread_rng());
-    //         let pk = PublicKey::from(&sk);
-    //         let msg = random_message().to_vec();
-    //         let req = Request::new(SignRequest {
-    //             message: msg.to_vec(),
-    //             public_key: pk.to_raw_bytes().to_vec(),
-    //             secret_key: sk.to_bytes().to_vec(),
-    //         });
-    //         let signres = signer._sign(&req).unwrap();
-    //         let sig = signres.get_ref().sig.as_ref().unwrap();
-
-    //         if let ResponseSignature(a) = sig {
-    //             let ver = Request::new(VerifyRequest {
-    //                 apk: APK::from(&pk).to_raw_bytes().to_vec(),
-    //                 signature: a.to_vec(),
-    //                 message: msg.to_vec(),
-    //             });
-
-    //             let sig = BlsSigner::slice_to_fixed(&a).unwrap();
-    //             let sig = Signature::from_bytes(&sig).unwrap();
-    //             // Verification with the standard pk should fail.
-    //             assert!(pk.verify(&sig, &msg).is_err());
-
-    //             // Verification with the aggregated version should work.
-    //             let apk = APK::from(&pk);
-    //             assert!(apk.verify(&sig, &msg).is_ok());
-
-    //             let signer = BlsSigner::default();
-    //             let mut res = signer.verify_sync(&ver).unwrap();
-    //             let a = res.get_mut().ver.take();
-    //             match a.unwrap() {
-    //                 Valid(e) => {
-    //                     assert!(e);
-    //                 }
-    //                 _ => {
-    //                     assert!(false);
-    //                 }
-    //             }
-    //         } else {
-    //             panic!("help")
-    //         }
-    //     }
-
-    //     fn random_message() -> [u8; 100] {
-    //         let mut msg = [0u8; 100];
-    //         (&mut rand::thread_rng()).fill_bytes(&mut msg);
-    //         msg
-    //     }
-    // }
     mod benches_svc {
-        use std::thread::Thread;
 
         pub use super::*;
         extern crate test;
-        use dusk_bls12_381_sign::{PublicKey, SecretKey, APK};
-        use rand::RngCore;
+        use dusk_bls12_381_sign::{PublicKey, SecretKey};
         use test::Bencher;
 
         fn public_from_compressed_macro(s: &[u8]) -> Result<PublicKey, Status> {
@@ -350,65 +271,11 @@ mod svc {
         fn bench_deser_uncompressed(b: &mut Bencher) {
             let sk = SecretKey::new(&mut rand::thread_rng());
             let raw = PublicKey::from(&sk).to_raw_bytes().to_vec();
-            b.iter(|| BlsSigner::public_from_raw_unchecked(&raw));
-        }
-
-        // #[bench]
-        // fn bench_sign(b: &mut Bencher) {
-        //     let signer = BlsSigner::default();
-        //     let sk = SecretKey::new(&mut rand::thread_rng());
-        //     let req = Request::new(SignRequest {
-        //         message: random_message().to_vec(),
-        //         public_key: PublicKey::from(&sk).to_raw_bytes().to_vec(),
-        //         secret_key: sk.to_bytes().to_vec(),
-        //     });
-        //     // signer.sign(&req).
-        //     // let b2 = tokio::runtime::Handle::current();
-        //     // ;
-        //     b.iter(|| signer._sign(&req) );
-        // }
-
-        // #[bench]
-        // fn bench_verify(b: &mut Bencher) {
-        //     let sk = SecretKey::new(&mut rand::thread_rng());
-        //     let pk = PublicKey::from(&sk);
-        //     let msg = random_message().to_vec();
-        //     let signer = BlsSigner::default();
-        //     let req = Request::new(SignRequest {
-        //         message: msg.to_vec(),
-        //         public_key: pk.to_raw_bytes().to_vec(),
-        //         secret_key: sk.to_bytes().to_vec(),
-        //     });
-        //     let signres = signer._sign(&req).unwrap();
-        //     let sig = signres.get_ref().sig.as_ref().unwrap();
-        //     if let ResponseSignature(a) = sig {
-        //         let ver = Request::new(VerifyRequest {
-        //             apk: APK::from(&pk).to_raw_bytes().to_vec(),
-        //             signature: a.to_vec(),
-        //             message: msg.to_vec(),
-        //         });
-        //         b.iter(|| {
-        //             let signer = BlsSigner::default();
-        //             let mut res = signer.verify_sync(&ver).unwrap();
-        //             let a = res.get_mut().ver.take();
-        //             match a.unwrap() {
-        //                 Valid(e) => {
-        //                     assert!(e);
-        //                 }
-        //                 _ => {
-        //                     assert!(false);
-        //                 }
-        //             }
-        //         });
-        //     } else {
-        //         panic!("help")
-        //     }
-        // }
-
-        fn random_message() -> [u8; 100] {
-            let mut msg = [0u8; 100];
-            (&mut rand::thread_rng()).fill_bytes(&mut msg);
-            msg
+            b.iter(|| {
+                PublicKey::from_raw_bytes(
+                    &BlsSigner::slice_to_fixed(&raw).unwrap(),
+                )
+            });
         }
     }
 }
