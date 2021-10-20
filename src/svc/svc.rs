@@ -7,10 +7,13 @@
 #![feature(test)]
 #![cfg_attr(not(unix), allow(unused_imports))]
 
-mod signer;
 #[cfg(feature = "std")]
 #[cfg(unix)]
 mod unix;
+
+#[cfg(feature = "std")]
+mod signer;
+#[cfg(feature = "std")]
 use crate::signer::BlsSigner;
 
 #[cfg(feature = "std")]

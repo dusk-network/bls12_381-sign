@@ -8,7 +8,6 @@ use std::{collections::HashMap, sync::Arc};
 
 use tokio::sync::RwLock;
 
-#[cfg(feature = "std")]
 pub struct BlsSigner {
     cache: Arc<RwLock<HashMap<[u8; 96], [u8; 193]>>>,
 }
@@ -21,7 +20,6 @@ impl Default for BlsSigner {
     }
 }
 
-#[cfg(feature = "std")]
 use {
     crate::aggregate_response::Agg::Code,
     crate::create_apk_response::Apk::Apk,
@@ -44,7 +42,6 @@ use {
 /// The following macros are written to minimize memory handling with [core::mem::transmute], and by
 /// early return on error from the calling function to reduce repeated match branches that are
 /// basically all the same
-#[cfg(feature = "std")]
 #[macro_export]
 macro_rules! slice_as_array_transmute {
     ($slice:expr) => {
@@ -52,7 +49,6 @@ macro_rules! slice_as_array_transmute {
     };
 }
 
-#[cfg(feature = "std")]
 #[macro_export]
 macro_rules! slice_as {
     ($slice:expr, $wrapper:ty, $note:literal) => {{
@@ -81,7 +77,6 @@ macro_rules! slice_as {
     }};
 }
 
-#[cfg(feature = "std")]
 impl BlsSigner {
     async fn public_from_cache(&self, pk: &[u8]) -> Result<PublicKey, Status> {
         let pk = BlsSigner::slice_to_fixed(pk)?;
@@ -241,7 +236,6 @@ impl BlsSigner {
     }
 }
 
-#[cfg(feature = "std")]
 #[cfg(test)]
 mod svc {
     pub use crate::sign_response::Sig::Signature as ResponseSignature;
