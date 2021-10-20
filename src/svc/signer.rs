@@ -1,3 +1,9 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+//
+// Copyright (c) DUSK NETWORK. All rights reserved.
+
 use std::{collections::HashMap, sync::Arc};
 
 use tokio::sync::RwLock;
@@ -144,16 +150,18 @@ impl BlsSigner {
     }
 
     /// Generate a new BLS12-381 key pair
-    pub(crate) fn generate_keys_sync(
+    pub(crate) async fn generate_keys_sync(
         &self,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
         // get a new random secret key from system entropy
         let sk = SecretKey::new(&mut rand_core::OsRng);
-
+        let pk = PublicKey::from(&sk);
+        let pk_bytes = pk.to_bytes();
+        self.cache.write().await.insert(pk_bytes, pk.to_raw_bytes());
         // construct the gRPC response from the key and return it
         Ok(Response::new(GenerateKeysResponse {
             secret_key: sk.to_bytes().to_vec(),
-            public_key: PublicKey::from(&sk).to_raw_bytes().to_vec(),
+            public_key: pk_bytes.to_vec(),
         }))
     }
 
@@ -255,152 +263,152 @@ impl BlsSigner {
     }
 }
 
-// #[cfg(feature = "std")]
-// #[cfg(test)]
-// mod svc {
-//     pub use crate::sign_response::Sig::Signature as ResponseSignature;
-//     pub use crate::verify_response::Ver::Valid;
-//     pub use crate::*;
-//     pub use dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK};
-//     pub use rand::RngCore;
-//     mod test {
-//         pub use super::*;
-//         extern crate async_std;
-//         #[test]
-//         fn sign_verify() {
-//             let signer = BlsSigner::default();
-//             let sk = SecretKey::new(&mut rand::thread_rng());
-//             let pk = PublicKey::from(&sk);
-//             let msg = random_message().to_vec();
-//             let req = Request::new(SignRequest {
-//                 message: msg.to_vec(),
-//                 public_key: pk.to_raw_bytes().to_vec(),
-//                 secret_key: sk.to_bytes().to_vec(),
-//             });
-//             let signres = signer._sign(&req).unwrap();
-//             let sig = signres.get_ref().sig.as_ref().unwrap();
+#[cfg(feature = "std")]
+#[cfg(test)]
+mod svc {
+    pub use crate::sign_response::Sig::Signature as ResponseSignature;
+    pub use crate::verify_response::Ver::Valid;
+    pub use crate::*;
+    pub use dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK};
+    pub use rand::RngCore;
+    // mod test {
+    //     pub use super::*;
+    //     extern crate async_std;
+    //     #[test]
+    //     fn sign_verify() {
+    //         let signer = BlsSigner::default();
+    //         let sk = SecretKey::new(&mut rand::thread_rng());
+    //         let pk = PublicKey::from(&sk);
+    //         let msg = random_message().to_vec();
+    //         let req = Request::new(SignRequest {
+    //             message: msg.to_vec(),
+    //             public_key: pk.to_raw_bytes().to_vec(),
+    //             secret_key: sk.to_bytes().to_vec(),
+    //         });
+    //         let signres = signer._sign(&req).unwrap();
+    //         let sig = signres.get_ref().sig.as_ref().unwrap();
 
-//             if let ResponseSignature(a) = sig {
-//                 let ver = Request::new(VerifyRequest {
-//                     apk: APK::from(&pk).to_raw_bytes().to_vec(),
-//                     signature: a.to_vec(),
-//                     message: msg.to_vec(),
-//                 });
+    //         if let ResponseSignature(a) = sig {
+    //             let ver = Request::new(VerifyRequest {
+    //                 apk: APK::from(&pk).to_raw_bytes().to_vec(),
+    //                 signature: a.to_vec(),
+    //                 message: msg.to_vec(),
+    //             });
 
-//                 let sig = BlsSigner::slice_to_fixed(&a).unwrap();
-//                 let sig = Signature::from_bytes(&sig).unwrap();
-//                 // Verification with the standard pk should fail.
-//                 assert!(pk.verify(&sig, &msg).is_err());
+    //             let sig = BlsSigner::slice_to_fixed(&a).unwrap();
+    //             let sig = Signature::from_bytes(&sig).unwrap();
+    //             // Verification with the standard pk should fail.
+    //             assert!(pk.verify(&sig, &msg).is_err());
 
-//                 // Verification with the aggregated version should work.
-//                 let apk = APK::from(&pk);
-//                 assert!(apk.verify(&sig, &msg).is_ok());
+    //             // Verification with the aggregated version should work.
+    //             let apk = APK::from(&pk);
+    //             assert!(apk.verify(&sig, &msg).is_ok());
 
-//                 let signer = BlsSigner::default();
-//                 let mut res = signer.verify_sync(&ver).unwrap();
-//                 let a = res.get_mut().ver.take();
-//                 match a.unwrap() {
-//                     Valid(e) => {
-//                         assert!(e);
-//                     }
-//                     _ => {
-//                         assert!(false);
-//                     }
-//                 }
-//             } else {
-//                 panic!("help")
-//             }
-//         }
+    //             let signer = BlsSigner::default();
+    //             let mut res = signer.verify_sync(&ver).unwrap();
+    //             let a = res.get_mut().ver.take();
+    //             match a.unwrap() {
+    //                 Valid(e) => {
+    //                     assert!(e);
+    //                 }
+    //                 _ => {
+    //                     assert!(false);
+    //                 }
+    //             }
+    //         } else {
+    //             panic!("help")
+    //         }
+    //     }
 
-//         fn random_message() -> [u8; 100] {
-//             let mut msg = [0u8; 100];
-//             (&mut rand::thread_rng()).fill_bytes(&mut msg);
-//             msg
-//         }
-//     }
-//     mod benches_svc {
-//         use std::thread::Thread;
+    //     fn random_message() -> [u8; 100] {
+    //         let mut msg = [0u8; 100];
+    //         (&mut rand::thread_rng()).fill_bytes(&mut msg);
+    //         msg
+    //     }
+    // }
+    mod benches_svc {
+        use std::thread::Thread;
 
-//         pub use super::*;
-//         extern crate test;
-//         use dusk_bls12_381_sign::{PublicKey, SecretKey, APK};
-//         use rand::RngCore;
-//         use test::Bencher;
+        pub use super::*;
+        extern crate test;
+        use dusk_bls12_381_sign::{PublicKey, SecretKey, APK};
+        use rand::RngCore;
+        use test::Bencher;
 
-//         fn public_from_compressed_macro(s: &[u8]) -> Result<PublicKey, Status> {
-//             slice_as!(s, PublicKey, "PublicKey")
-//         }
+        fn public_from_compressed_macro(s: &[u8]) -> Result<PublicKey, Status> {
+            slice_as!(s, PublicKey, "PublicKey")
+        }
 
-//         #[bench]
-//         fn bench_deser_compressed(b: &mut Bencher) {
-//             let sk = SecretKey::new(&mut rand::thread_rng());
-//             let bytes = PublicKey::from(&sk).to_bytes().to_vec();
-//             b.iter(|| public_from_compressed_macro(&bytes).unwrap());
-//         }
+        #[bench]
+        fn bench_deser_compressed(b: &mut Bencher) {
+            let sk = SecretKey::new(&mut rand::thread_rng());
+            let bytes = PublicKey::from(&sk).to_bytes().to_vec();
+            b.iter(|| public_from_compressed_macro(&bytes).unwrap());
+        }
 
-//         #[bench]
-//         fn bench_deser_uncompressed(b: &mut Bencher) {
-//             let sk = SecretKey::new(&mut rand::thread_rng());
-//             let raw = PublicKey::from(&sk).to_raw_bytes().to_vec();
-//             b.iter(|| BlsSigner::public_from_raw_unchecked(&raw));
-//         }
+        #[bench]
+        fn bench_deser_uncompressed(b: &mut Bencher) {
+            let sk = SecretKey::new(&mut rand::thread_rng());
+            let raw = PublicKey::from(&sk).to_raw_bytes().to_vec();
+            b.iter(|| BlsSigner::public_from_raw_unchecked(&raw));
+        }
 
-//         #[bench]
-//         fn bench_sign(b: &mut Bencher) {
-//             let signer = BlsSigner::default();
-//             let sk = SecretKey::new(&mut rand::thread_rng());
-//             let req = Request::new(SignRequest {
-//                 message: random_message().to_vec(),
-//                 public_key: PublicKey::from(&sk).to_raw_bytes().to_vec(),
-//                 secret_key: sk.to_bytes().to_vec(),
-//             });
-//             // signer.sign(&req).
-//             // let b2 = tokio::runtime::Handle::current();
-//             // ;
-//             b.iter(|| signer._sign(&req) );
-//         }
+        // #[bench]
+        // fn bench_sign(b: &mut Bencher) {
+        //     let signer = BlsSigner::default();
+        //     let sk = SecretKey::new(&mut rand::thread_rng());
+        //     let req = Request::new(SignRequest {
+        //         message: random_message().to_vec(),
+        //         public_key: PublicKey::from(&sk).to_raw_bytes().to_vec(),
+        //         secret_key: sk.to_bytes().to_vec(),
+        //     });
+        //     // signer.sign(&req).
+        //     // let b2 = tokio::runtime::Handle::current();
+        //     // ;
+        //     b.iter(|| signer._sign(&req) );
+        // }
 
-//         #[bench]
-//         fn bench_verify(b: &mut Bencher) {
-//             let sk = SecretKey::new(&mut rand::thread_rng());
-//             let pk = PublicKey::from(&sk);
-//             let msg = random_message().to_vec();
-//             let signer = BlsSigner::default();
-//             let req = Request::new(SignRequest {
-//                 message: msg.to_vec(),
-//                 public_key: pk.to_raw_bytes().to_vec(),
-//                 secret_key: sk.to_bytes().to_vec(),
-//             });
-//             let signres = signer._sign(&req).unwrap();
-//             let sig = signres.get_ref().sig.as_ref().unwrap();
-//             if let ResponseSignature(a) = sig {
-//                 let ver = Request::new(VerifyRequest {
-//                     apk: APK::from(&pk).to_raw_bytes().to_vec(),
-//                     signature: a.to_vec(),
-//                     message: msg.to_vec(),
-//                 });
-//                 b.iter(|| {
-//                     let signer = BlsSigner::default();
-//                     let mut res = signer.verify_sync(&ver).unwrap();
-//                     let a = res.get_mut().ver.take();
-//                     match a.unwrap() {
-//                         Valid(e) => {
-//                             assert!(e);
-//                         }
-//                         _ => {
-//                             assert!(false);
-//                         }
-//                     }
-//                 });
-//             } else {
-//                 panic!("help")
-//             }
-//         }
+        // #[bench]
+        // fn bench_verify(b: &mut Bencher) {
+        //     let sk = SecretKey::new(&mut rand::thread_rng());
+        //     let pk = PublicKey::from(&sk);
+        //     let msg = random_message().to_vec();
+        //     let signer = BlsSigner::default();
+        //     let req = Request::new(SignRequest {
+        //         message: msg.to_vec(),
+        //         public_key: pk.to_raw_bytes().to_vec(),
+        //         secret_key: sk.to_bytes().to_vec(),
+        //     });
+        //     let signres = signer._sign(&req).unwrap();
+        //     let sig = signres.get_ref().sig.as_ref().unwrap();
+        //     if let ResponseSignature(a) = sig {
+        //         let ver = Request::new(VerifyRequest {
+        //             apk: APK::from(&pk).to_raw_bytes().to_vec(),
+        //             signature: a.to_vec(),
+        //             message: msg.to_vec(),
+        //         });
+        //         b.iter(|| {
+        //             let signer = BlsSigner::default();
+        //             let mut res = signer.verify_sync(&ver).unwrap();
+        //             let a = res.get_mut().ver.take();
+        //             match a.unwrap() {
+        //                 Valid(e) => {
+        //                     assert!(e);
+        //                 }
+        //                 _ => {
+        //                     assert!(false);
+        //                 }
+        //             }
+        //         });
+        //     } else {
+        //         panic!("help")
+        //     }
+        // }
 
-//         fn random_message() -> [u8; 100] {
-//             let mut msg = [0u8; 100];
-//             (&mut rand::thread_rng()).fill_bytes(&mut msg);
-//             msg
-//         }
-//     }
-// }
+        fn random_message() -> [u8; 100] {
+            let mut msg = [0u8; 100];
+            (&mut rand::thread_rng()).fill_bytes(&mut msg);
+            msg
+        }
+    }
+}

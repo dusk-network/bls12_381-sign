@@ -34,7 +34,7 @@ impl Signer for BlsSigner {
         &self,
         _request: Request<GenerateKeysRequest>,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
-        self.generate_keys_sync()
+        self.generate_keys_sync().await
     }
 
     async fn sign(
