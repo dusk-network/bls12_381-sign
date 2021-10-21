@@ -4,14 +4,15 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-#[cfg(tests)]
+#[cfg(test)]
+#[cfg(feature = "std")]
 mod tests {
     use crate::{PublicKey, SecretKey, APK};
-    use rand::RngCore;
+    use rand_core::{OsRng, RngCore};
 
     #[test]
     fn vulnerable_sign_verify() {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let msg = random_message();
 
         // Sign and verify.
@@ -22,7 +23,7 @@ mod tests {
 
     #[test]
     fn vulnerable_sign_verify_incorrect_message() {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let msg = random_message();
 
         let sig = sk.sign_vulnerable(&msg);
@@ -35,20 +36,20 @@ mod tests {
 
     #[test]
     fn vulnerable_sign_verify_incorrect_pk() {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let msg = random_message();
 
         let sig = sk.sign_vulnerable(&msg);
 
         // Verify with a different public key.
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         assert!(pk.verify(&sig, &msg).is_err());
     }
 
     #[test]
     fn sign_verify() {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
@@ -64,7 +65,7 @@ mod tests {
 
     #[test]
     fn sign_verify_incorrect_message() {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
@@ -78,14 +79,14 @@ mod tests {
 
     #[test]
     fn sign_verify_incorrect_apk() {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
         let sig = sk.sign(&pk, &msg);
 
         // Verification with another APK should fail.
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let apk = APK::from(&pk);
         assert!(apk.verify(&sig, &msg).is_err());
@@ -93,7 +94,7 @@ mod tests {
 
     #[test]
     fn sign_verify_aggregated() {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
@@ -102,7 +103,7 @@ mod tests {
         let mut apk = APK::from(&pk);
 
         for _ in 0..10 {
-            let sk = SecretKey::new(&mut rand::thread_rng());
+            let sk = SecretKey::new(&mut OsRng);
             let pk = PublicKey::from(&sk);
             let sig = sk.sign(&pk, &msg);
             agg_sig = agg_sig.aggregate(&[sig]);
@@ -114,7 +115,7 @@ mod tests {
 
     #[test]
     fn sign_verify_aggregated_incorrect_message() {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
@@ -123,7 +124,7 @@ mod tests {
         let mut apk = APK::from(&pk);
 
         for _ in 0..10 {
-            let sk = SecretKey::new(&mut rand::thread_rng());
+            let sk = SecretKey::new(&mut OsRng);
             let pk = PublicKey::from(&sk);
             let sig = sk.sign(&pk, &msg);
             agg_sig = agg_sig.aggregate(&[sig]);
@@ -137,7 +138,7 @@ mod tests {
 
     #[test]
     fn sign_verify_aggregated_incorrect_apk() {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
@@ -146,7 +147,7 @@ mod tests {
         let mut apk = APK::from(&pk);
 
         for _ in 0..10 {
-            let sk = SecretKey::new(&mut rand::thread_rng());
+            let sk = SecretKey::new(&mut OsRng);
             let pk = PublicKey::from(&sk);
             let sig = sk.sign(&pk, &msg);
             agg_sig = agg_sig.aggregate(&[sig]);
@@ -160,7 +161,7 @@ mod tests {
 
     fn random_message() -> [u8; 100] {
         let mut msg = [0u8; 100];
-        (&mut rand::thread_rng()).fill_bytes(&mut msg);
+        (&mut OsRng::default()).fill_bytes(&mut msg);
         msg
     }
 }

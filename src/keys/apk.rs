@@ -8,8 +8,6 @@
 use crate::{h1, Signature};
 use crate::{Error, PublicKey};
 #[cfg(feature = "canon")]
-use canonical::Canon;
-#[cfg(feature = "canon")]
 use canonical_derive::Canon;
 #[cfg(feature = "std")]
 use dusk_bls12_381::G2Projective;
