@@ -55,7 +55,7 @@ pub unsafe extern "C" fn sign(
 
     let msg = slice::from_raw_parts(msg_ptr, msg_len);
 
-    let sig = sk.sign(&pk, &msg);
+    let sig = sk.sign(&pk, msg);
     ptr::copy_nonoverlapping(
         &sig.to_bytes()[0] as *const u8,
         sig_ptr,
@@ -76,7 +76,7 @@ pub unsafe extern "C" fn verify(
 
     let msg = slice::from_raw_parts(msg_ptr, msg_len);
 
-    match apk.verify(&sig, &msg).is_ok() {
+    match apk.verify(&sig, msg).is_ok() {
         true => BLS_OK,
         false => Error::InvalidSignature.into(),
     }
@@ -108,7 +108,7 @@ pub unsafe extern "C" fn aggregate_pk(
         .chunks(PK_SIZE)
         .map(|bytes| {
             let mut arr = [0u8; PK_SIZE];
-            arr.copy_from_slice(&bytes);
+            arr.copy_from_slice(bytes);
             PublicKey::from_bytes(&arr)
         })
         .collect();
@@ -133,7 +133,7 @@ pub unsafe extern "C" fn aggregate_sig(
         .chunks(SIG_SIZE)
         .map(|bytes| {
             let mut arr = [0u8; SIG_SIZE];
-            arr.copy_from_slice(&bytes);
+            arr.copy_from_slice(bytes);
             Signature::from_bytes(&arr)
         })
         .collect();

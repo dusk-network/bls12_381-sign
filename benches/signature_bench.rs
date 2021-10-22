@@ -43,8 +43,7 @@ mod benches {
         let sk = SecretKey::new(&mut OsRng);
         let msg = random_message();
         let sig = sk.sign_vulnerable(&msg);
-        let sig2 = sig.clone();
-        b.iter(|| sig.aggregate(&[sig2]));
+        b.iter(|| sig.aggregate(&[sig]));
     }
 
     #[bench]
@@ -52,8 +51,7 @@ mod benches {
         let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let mut apk = APK::from(&pk);
-        let pk2 = pk.clone();
-        b.iter(|| apk.aggregate(&[pk2]));
+        b.iter(|| apk.aggregate(&[pk]));
     }
 
     fn random_message() -> [u8; 100] {
