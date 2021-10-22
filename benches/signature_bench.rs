@@ -9,6 +9,7 @@
 extern crate test;
 
 #[cfg(test)]
+#[cfg(feature = "std")]
 mod benches {
     use dusk_bls12_381_sign::{PublicKey, SecretKey, APK};
     use rand_core::{OsRng, RngCore};

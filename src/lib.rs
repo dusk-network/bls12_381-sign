@@ -4,7 +4,7 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, feature(lang_items))]
 
 //! Implementation of BLS signatures on the BLS12-381 curve.
 //! Reference paper: https://crypto.stanford.edu/~dabo/pubs/papers/BLSmultisig.html
@@ -23,12 +23,15 @@ pub use hash::{h0, h1};
 pub use keys::{apk::APK, public::PublicKey, secret::SecretKey};
 pub use signature::Signature;
 
-#[cfg(not(feature = "std"))]
-use core::panic::PanicInfo;
+#[cfg(not(any(test, feature = "std")))]
+mod panic_handling {
+    use core::panic::PanicInfo;
 
-/// This function is called on panic.
-#[cfg(not(feature = "std"))]
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    loop {}
+    #[panic_handler]
+    fn panic(_: &PanicInfo) -> ! {
+        loop {}
+    }
+
+    #[lang = "eh_personality"]
+    extern "C" fn eh_personality() {}
 }
