@@ -11,15 +11,13 @@
 
 mod error;
 mod ffi;
-#[cfg(feature = "std")]
-mod hash;
 mod keys;
 mod signature;
-mod tests;
+
+#[cfg(feature = "std")]
+mod hash;
 
 pub use error::Error;
-#[cfg(feature = "std")]
-pub use hash::{h0, h1};
 pub use keys::{apk::APK, public::PublicKey, secret::SecretKey};
 pub use signature::Signature;
 

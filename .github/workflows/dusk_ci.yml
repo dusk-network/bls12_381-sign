@@ -11,8 +11,6 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
-          override: true
       - uses: actions-rs/cargo@v1
         with:
           command: install
@@ -29,9 +27,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
           target: thumbv6m-none-eabi
-          override: true
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -45,27 +41,10 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
-          override: true
       - uses: actions-rs/cargo@v1
         with:
           command: test
           args: --release
-  
-  test_nightly_canon:
-    name: Nightly tests canon
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --features canon
 
   fmt:
     name: Rustfmt
@@ -75,11 +54,8 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly-2020-10-25
-          override: true
       - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
-
