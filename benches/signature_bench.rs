@@ -8,22 +8,21 @@
 
 extern crate test;
 
-#[cfg(test)]
 mod benches {
     use dusk_bls12_381_sign::{PublicKey, SecretKey, APK};
-    use rand::RngCore;
+    use rand_core::{OsRng, RngCore};
     use test::Bencher;
 
     #[bench]
     fn bench_sign_vulnerable(b: &mut Bencher) {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::random(&mut OsRng);
         let msg = random_message();
         b.iter(|| sk.sign_vulnerable(&msg));
     }
 
     #[bench]
     fn bench_sign(b: &mut Bencher) {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::random(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
         b.iter(|| sk.sign(&pk, &msg));
@@ -31,7 +30,7 @@ mod benches {
 
     #[bench]
     fn bench_verify(b: &mut Bencher) {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::random(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
         let sig = sk.sign_vulnerable(&msg);
@@ -40,25 +39,23 @@ mod benches {
 
     #[bench]
     fn bench_aggregate_sig(b: &mut Bencher) {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::random(&mut OsRng);
         let msg = random_message();
         let sig = sk.sign_vulnerable(&msg);
-        let sig2 = sig.clone();
-        b.iter(|| sig.aggregate(&[sig2]));
+        b.iter(|| sig.aggregate(&[sig]));
     }
 
     #[bench]
     fn bench_aggregate_pk(b: &mut Bencher) {
-        let sk = SecretKey::new(&mut rand::thread_rng());
+        let sk = SecretKey::random(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let mut apk = APK::from(&pk);
-        let pk2 = pk.clone();
-        b.iter(|| apk.aggregate(&[pk2]));
+        b.iter(|| apk.aggregate(&[pk]));
     }
 
     fn random_message() -> [u8; 100] {
         let mut msg = [0u8; 100];
-        (&mut rand::thread_rng()).fill_bytes(&mut msg);
+        (&mut OsRng::default()).fill_bytes(&mut msg);
         msg
     }
 }
