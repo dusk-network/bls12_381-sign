@@ -6,19 +6,21 @@
 
 #![cfg(feature = "std")]
 use crate::{Error, PublicKey, SecretKey, Signature, APK};
+
+use dusk_bytes::Serializable;
 use libc::{c_int, c_uchar, size_t};
 use std::{ptr, slice};
 
-const SK_SIZE: usize = SecretKey::serialized_size();
-const SIG_SIZE: usize = Signature::serialized_size();
-const PK_SIZE: usize = PublicKey::serialized_size();
+const SK_SIZE: usize = SecretKey::SIZE;
+const SIG_SIZE: usize = Signature::SIZE;
+const PK_SIZE: usize = PublicKey::SIZE;
 
 const BLS_OK: c_int = 0;
 
 impl From<Error> for c_int {
     fn from(e: Error) -> Self {
         match e {
-            Error::InvalidBytes => 1,
+            Error::BytesError(_) => 1,
             Error::InvalidSignature => 2,
         }
     }
@@ -35,7 +37,7 @@ macro_rules! unwrap_or_bail {
 
 #[no_mangle]
 pub unsafe extern "C" fn generate_keys(sk_ptr: *mut u8, pk_ptr: *mut u8) {
-    let sk = SecretKey::new(&mut rand_core::OsRng);
+    let sk = SecretKey::random(&mut rand_core::OsRng);
     let pk = PublicKey::from(&sk);
 
     ptr::copy_nonoverlapping(&sk.to_bytes()[0] as *const u8, sk_ptr, SK_SIZE);
