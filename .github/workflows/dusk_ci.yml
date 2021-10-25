@@ -11,8 +11,6 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
-          override: true
       - uses: actions-rs/cargo@v1
         with:
           command: install
@@ -21,20 +19,19 @@ jobs:
         with:
           command: dusk-analyzer
 
-  check_no_std:
-    name: Nightly tests
+  check_nightly_no_std:
+    name: Nightly check no_std
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
-          override: true
+          target: thumbv6m-none-eabi
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --no-default-features
+          args: --no-default-features --target thumbv6m-none-eabi
 
   test_nightly:
     name: Nightly tests
@@ -44,8 +41,6 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
-          override: true
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -59,11 +54,8 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly-2020-10-25
-          override: true
       - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
-

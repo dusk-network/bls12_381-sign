@@ -10,27 +10,27 @@ use crate::PublicKey;
 use blake2::{Blake2b, Digest};
 use core::convert::TryInto;
 use dusk_bls12_381::{BlsScalar, G1Affine};
+use dusk_bytes::Serializable;
+
+/// Hash an arbitrary slice of bytes into a [`BlsScalar`]
+fn h(msg: &[u8]) -> BlsScalar {
+    let hash = Blake2b::digest(msg);
+    BlsScalar::from_bytes_wide(
+        hash.as_slice().try_into().expect("64 bytes expected"),
+    )
+}
 
 /// h0 is the hash-to-curve-point function.
 /// Hₒ : M -> Gₒ
 pub fn h0(msg: &[u8]) -> G1Affine {
-    let hash = Blake2b::digest(msg);
-    let scalar = BlsScalar::from_bytes_wide(
-        hash.as_slice().try_into().expect("Wrong length"),
-    );
-
     // Now multiply this message by the G1 base point,
     // to generate a G1Affine.
-    let h = G1Affine::generator() * scalar;
-    h.into()
+    (G1Affine::generator() * h(msg)).into()
 }
 
 /// h1 is the hashing function used in the modified BLS
 /// multi-signature construction.
 /// H₁ : G₂ -> R
 pub fn h1(pk: &PublicKey) -> BlsScalar {
-    let hash = Blake2b::digest(&pk.to_bytes());
-    BlsScalar::from_bytes_wide(
-        hash.as_slice().try_into().expect("Wrong length"),
-    )
+    h(&pk.to_bytes())
 }

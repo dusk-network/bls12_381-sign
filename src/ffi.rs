@@ -6,20 +6,21 @@
 
 #![cfg(feature = "std")]
 use crate::{Error, PublicKey, SecretKey, Signature, APK};
+
+use dusk_bytes::Serializable;
 use libc::{c_int, c_uchar, size_t};
 use std::{ptr, slice};
 
-const SK_SIZE: usize = SecretKey::serialized_size();
-const SIG_SIZE: usize = Signature::serialized_size();
-const PK_SIZE: usize = PublicKey::serialized_size();
-const PK_RAW_SIZE: usize = PublicKey::serialized_raw_size();
+const SK_SIZE: usize = SecretKey::SIZE;
+const SIG_SIZE: usize = Signature::SIZE;
+const PK_SIZE: usize = PublicKey::SIZE;
 
 const BLS_OK: c_int = 0;
 
 impl From<Error> for c_int {
     fn from(e: Error) -> Self {
         match e {
-            Error::InvalidBytes => 1,
+            Error::BytesError(_) => 1,
             Error::InvalidSignature => 2,
         }
     }
@@ -36,29 +37,11 @@ macro_rules! unwrap_or_bail {
 
 #[no_mangle]
 pub unsafe extern "C" fn generate_keys(sk_ptr: *mut u8, pk_ptr: *mut u8) {
-    let sk = SecretKey::new(&mut rand_core::OsRng);
+    let sk = SecretKey::random(&mut rand_core::OsRng);
     let pk = PublicKey::from(&sk);
 
     ptr::copy_nonoverlapping(&sk.to_bytes()[0] as *const u8, sk_ptr, SK_SIZE);
     ptr::copy_nonoverlapping(&pk.to_bytes()[0] as *const u8, pk_ptr, PK_SIZE);
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn generate_keys_with_raw(
-    sk_ptr: *mut u8,
-    pk_ptr: *mut u8,
-    pk_raw_ptr: *mut u8,
-) {
-    let sk = SecretKey::new(&mut rand_core::OsRng);
-    let pk = PublicKey::from(&sk);
-
-    ptr::copy_nonoverlapping(&sk.to_bytes()[0] as *const u8, sk_ptr, SK_SIZE);
-    ptr::copy_nonoverlapping(&pk.to_bytes()[0] as *const u8, pk_ptr, PK_SIZE);
-    ptr::copy_nonoverlapping(
-        &pk.to_raw_bytes()[0] as *const u8,
-        pk_raw_ptr,
-        PK_RAW_SIZE,
-    );
 }
 
 #[no_mangle]
@@ -74,7 +57,7 @@ pub unsafe extern "C" fn sign(
 
     let msg = slice::from_raw_parts(msg_ptr, msg_len);
 
-    let sig = sk.sign(&pk, &msg);
+    let sig = sk.sign(&pk, msg);
     ptr::copy_nonoverlapping(
         &sig.to_bytes()[0] as *const u8,
         sig_ptr,
@@ -95,7 +78,7 @@ pub unsafe extern "C" fn verify(
 
     let msg = slice::from_raw_parts(msg_ptr, msg_len);
 
-    match apk.verify(&sig, &msg).is_ok() {
+    match apk.verify(&sig, msg).is_ok() {
         true => BLS_OK,
         false => Error::InvalidSignature.into(),
     }
@@ -127,7 +110,7 @@ pub unsafe extern "C" fn aggregate_pk(
         .chunks(PK_SIZE)
         .map(|bytes| {
             let mut arr = [0u8; PK_SIZE];
-            arr.copy_from_slice(&bytes);
+            arr.copy_from_slice(bytes);
             PublicKey::from_bytes(&arr)
         })
         .collect();
@@ -152,7 +135,7 @@ pub unsafe extern "C" fn aggregate_sig(
         .chunks(SIG_SIZE)
         .map(|bytes| {
             let mut arr = [0u8; SIG_SIZE];
-            arr.copy_from_slice(&bytes);
+            arr.copy_from_slice(bytes);
             Signature::from_bytes(&arr)
         })
         .collect();
@@ -164,75 +147,5 @@ pub unsafe extern "C" fn aggregate_sig(
         ret_ptr,
         SIG_SIZE,
     );
-    BLS_OK
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn apk_to_raw(
-    apk_ptr: *const [c_uchar; PK_SIZE],
-    ret_ptr: *mut u8,
-) -> c_int {
-    let apk = unwrap_or_bail!(APK::from_bytes(&*apk_ptr));
-    let apk_raw = apk.to_raw_bytes();
-    ptr::copy_nonoverlapping(&apk_raw[0] as *const u8, ret_ptr, PK_RAW_SIZE);
-    BLS_OK
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn pk_to_raw(
-    apk_ptr: *const [c_uchar; PK_SIZE],
-    ret_ptr: *mut u8,
-) -> c_int {
-    let apk = unwrap_or_bail!(PublicKey::from_bytes(&*apk_ptr));
-    let apk_raw = apk.to_raw_bytes();
-    ptr::copy_nonoverlapping(&apk_raw[0] as *const u8, ret_ptr, PK_RAW_SIZE);
-    BLS_OK
-}
-
-#[no_mangle]
-/// Aggregate a set of raw [`PublicKey`] into the raw [`APK`]. Returns a compressed [`APK`]
-pub unsafe extern "C" fn aggregate_pk_raw(
-    apk_ptr: *const [c_uchar; PK_RAW_SIZE],
-    pk_ptr: *mut u8,
-    pk_len: size_t,
-    ret_ptr: *mut u8,
-) -> c_int {
-    let apk = unwrap_or_bail!(APK::from_raw_bytes_unchecked(&*apk_ptr));
-    raw_aggregate(apk, pk_ptr, pk_len, ret_ptr)
-}
-
-#[no_mangle]
-/// Aggregate a set of raw [`PublicKey`] into a new [`APK`] created from raw [`PublicKey`]. Returns a compressed [`APK`]
-pub unsafe extern "C" fn create_and_aggregate_pk_raw(
-    original_pk_ptr: *const [c_uchar; PK_RAW_SIZE],
-    pk_ptr: *mut u8,
-    pk_len: size_t,
-    ret_ptr: *mut u8,
-) -> c_int {
-    let pk =
-        unwrap_or_bail!(PublicKey::from_raw_bytes_unchecked(&*original_pk_ptr));
-    let apk = APK::from(&pk);
-    raw_aggregate(apk, pk_ptr, pk_len, ret_ptr)
-}
-
-unsafe fn raw_aggregate(
-    mut apk: APK,
-    pk_ptr: *mut u8,
-    pk_len: size_t,
-    ret_ptr: *mut u8,
-) -> c_int {
-    let pk_slice = slice::from_raw_parts(pk_ptr, pk_len);
-    let pks: Result<Vec<PublicKey>, Error> = pk_slice
-        .chunks(PK_RAW_SIZE)
-        .map(|bytes| {
-            let mut arr = [0u8; PK_RAW_SIZE];
-            arr.copy_from_slice(&bytes);
-            PublicKey::from_raw_bytes_unchecked(&arr)
-        })
-        .collect();
-
-    let pks = unwrap_or_bail!(pks);
-    apk.aggregate(&pks);
-    ptr::copy_nonoverlapping(&apk.to_bytes()[0] as *const u8, ret_ptr, PK_SIZE);
     BLS_OK
 }

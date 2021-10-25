@@ -5,12 +5,12 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 #[cfg(feature = "std")]
-use crate::{h0, h1, Signature};
+use crate::{
+    hash::{h0, h1},
+    Signature,
+};
+
 use crate::{Error, SecretKey};
-#[cfg(feature = "canon")]
-use canonical::Canon;
-#[cfg(feature = "canon")]
-use canonical_derive::Canon;
 use dusk_bls12_381::G2Affine;
 use dusk_bytes::Serializable;
 
@@ -19,8 +19,19 @@ use dusk_bytes::Serializable;
 /// by `g2` (the base point of the G2 group).
 /// Can be used for signature verification.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "canon", derive(Canon))]
 pub struct PublicKey(pub(crate) G2Affine);
+
+impl Serializable<96> for PublicKey {
+    type Error = Error;
+
+    fn to_bytes(&self) -> [u8; Self::SIZE] {
+        self.0.to_bytes()
+    }
+
+    fn from_bytes(bytes: &[u8; Self::SIZE]) -> Result<Self, Error> {
+        Ok(Self(G2Affine::from_bytes(bytes)?))
+    }
+}
 
 impl From<&SecretKey> for PublicKey {
     /// Generates a new [`PublicKey`] from a [`SecretKey`].
@@ -33,10 +44,10 @@ impl From<&SecretKey> for PublicKey {
     }
 }
 
+#[cfg(feature = "std")]
 impl PublicKey {
     /// Verify a [`Signature`] by comparing the results of the two pairing
     /// operations: e(sig, g_2) == e(Hₒ(m), pk).
-    #[cfg(feature = "std")]
     pub fn verify(&self, sig: &Signature, msg: &[u8]) -> Result<(), Error> {
         let h0m = h0(msg);
         let p1 = dusk_bls12_381::pairing(&sig.0, &G2Affine::generator());
@@ -50,56 +61,9 @@ impl PublicKey {
     }
 
     /// Return pk * t, where t is H_(pk).
-    #[cfg(feature = "std")]
     pub fn pk_t(&self) -> G2Affine {
         let t = h1(self);
         let gx = self.0 * t;
         gx.into()
-    }
-
-    /// Return the compressed byte representation of the [`PublicKey`].
-    pub fn to_bytes(&self) -> [u8; PublicKey::serialized_size()] {
-        self.0.to_bytes()
-    }
-
-    /// Attempt to create a [`PublicKey`] from a G2Affine byte representation.
-    pub fn from_bytes(
-        bytes: &[u8; PublicKey::serialized_size()],
-    ) -> Result<Self, Error> {
-        Ok(Self(
-            G2Affine::from_bytes(bytes).or(Err(Error::InvalidBytes))?,
-        ))
-    }
-
-    /// Return the amount of bytes needed to serialize a [`PublicKey`].
-    pub const fn serialized_size() -> usize {
-        96
-    }
-
-    /// Return the amount of bytes needed to raw serialize a [`PublicKey`].
-    pub const fn serialized_raw_size() -> usize {
-        G2Affine::RAW_SIZE
-    }
-
-    /// Raw bytes representation
-    ///
-    /// The intended usage of this function is for trusted sets of data where performance is
-    /// critical.
-    ///
-    /// For secure serialization, check `to_bytes`
-    pub fn to_raw_bytes(&self) -> [u8; G2Affine::RAW_SIZE] {
-        self.0.to_raw_bytes()
-    }
-
-    /// Create a `PublicKey` from a set of bytes created by `PublicKey::to_raw_bytes`.
-    ///
-    /// No check is performed and no constant time is granted. The expected usage of this function
-    /// is for trusted bytes where performance is critical.
-    ///
-    /// For secure serialization, check `from_bytes`
-    pub fn from_raw_bytes_unchecked(
-        bytes: &[u8; G2Affine::RAW_SIZE],
-    ) -> Result<Self, Error> {
-        unsafe { Ok(Self(G2Affine::from_slice_unchecked(bytes))) }
     }
 }
