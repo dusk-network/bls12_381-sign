@@ -1,0 +1,43 @@
+on: [ pull_request ]
+name: Continuous Integration
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [ 1.17.x ]
+        os: [ ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Change toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - name: Rustfmt
+        run: rustup component add rustfmt
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+      - name: Protobuf go plugins
+        run: go install google.golang.org/grpc &&
+          go install github.com/golang/protobuf/protoc-gen-go
+      - name: Test
+        run: make test
+      - name: Upload object for platform
+        uses: actions/upload-artifact@v2
+        with:
+          name: libdusk_bls12_381_sign_${{ matrix.os }}.a
+          path: bls12_381-sign/target/release/libdusk_bls12_381_sign.a
+      - name: Upload microservice for platform
+        uses: actions/upload-artifact@v2
+        with:
+          name: bls12381svc_${{ matrix.os }}
+          path: bls12_381-sign/target/release/bls12381svc
+      - name: Run all bls12-381 benches for Cgo, IPC and the Rust benchmarks
+        run: /usr/bin/make benchmem

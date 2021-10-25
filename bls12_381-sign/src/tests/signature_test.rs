@@ -4,14 +4,15 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
+#[cfg(test)]
 #[cfg(feature = "std")]
-mod std_tests {
-    use dusk_bls12_381_sign::{PublicKey, SecretKey, APK};
+mod tests {
+    use crate::{PublicKey, SecretKey, APK};
     use rand_core::{OsRng, RngCore};
 
     #[test]
     fn vulnerable_sign_verify() {
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let msg = random_message();
 
         // Sign and verify.
@@ -22,7 +23,7 @@ mod std_tests {
 
     #[test]
     fn vulnerable_sign_verify_incorrect_message() {
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let msg = random_message();
 
         let sig = sk.sign_vulnerable(&msg);
@@ -35,20 +36,20 @@ mod std_tests {
 
     #[test]
     fn vulnerable_sign_verify_incorrect_pk() {
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let msg = random_message();
 
         let sig = sk.sign_vulnerable(&msg);
 
         // Verify with a different public key.
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         assert!(pk.verify(&sig, &msg).is_err());
     }
 
     #[test]
     fn sign_verify() {
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
@@ -64,7 +65,7 @@ mod std_tests {
 
     #[test]
     fn sign_verify_incorrect_message() {
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
@@ -78,14 +79,14 @@ mod std_tests {
 
     #[test]
     fn sign_verify_incorrect_apk() {
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
         let sig = sk.sign(&pk, &msg);
 
         // Verification with another APK should fail.
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let apk = APK::from(&pk);
         assert!(apk.verify(&sig, &msg).is_err());
@@ -93,7 +94,7 @@ mod std_tests {
 
     #[test]
     fn sign_verify_aggregated() {
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
@@ -102,7 +103,7 @@ mod std_tests {
         let mut apk = APK::from(&pk);
 
         for _ in 0..10 {
-            let sk = SecretKey::random(&mut OsRng);
+            let sk = SecretKey::new(&mut OsRng);
             let pk = PublicKey::from(&sk);
             let sig = sk.sign(&pk, &msg);
             agg_sig = agg_sig.aggregate(&[sig]);
@@ -114,7 +115,7 @@ mod std_tests {
 
     #[test]
     fn sign_verify_aggregated_incorrect_message() {
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
@@ -123,7 +124,7 @@ mod std_tests {
         let mut apk = APK::from(&pk);
 
         for _ in 0..10 {
-            let sk = SecretKey::random(&mut OsRng);
+            let sk = SecretKey::new(&mut OsRng);
             let pk = PublicKey::from(&sk);
             let sig = sk.sign(&pk, &msg);
             agg_sig = agg_sig.aggregate(&[sig]);
@@ -137,7 +138,7 @@ mod std_tests {
 
     #[test]
     fn sign_verify_aggregated_incorrect_apk() {
-        let sk = SecretKey::random(&mut OsRng);
+        let sk = SecretKey::new(&mut OsRng);
         let pk = PublicKey::from(&sk);
         let msg = random_message();
 
@@ -146,7 +147,7 @@ mod std_tests {
         let mut apk = APK::from(&pk);
 
         for _ in 0..10 {
-            let sk = SecretKey::random(&mut OsRng);
+            let sk = SecretKey::new(&mut OsRng);
             let pk = PublicKey::from(&sk);
             let sig = sk.sign(&pk, &msg);
             agg_sig = agg_sig.aggregate(&[sig]);
