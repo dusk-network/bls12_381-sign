@@ -6,14 +6,11 @@
 
 #![cfg_attr(not(unix), allow(unused_imports))]
 
-#[cfg(feature = "std")]
 #[cfg(unix)]
 mod unix;
 
-#[cfg(feature = "std")]
 tonic::include_proto!("signer");
 
-#[cfg(feature = "std")]
 use {
     aggregate_response::Agg::Code,
     create_apk_response::Apk::Apk,
@@ -29,14 +26,12 @@ use {
     // log,
 };
 
-#[cfg(feature = "std")]
 #[derive(Default)]
 pub struct MySign {}
 
 /// The following macros are written to minimize memory handling with [core::mem::transmute], and by
 /// early return on error from the calling function to reduce repeated match branches that are
 /// basically all the same
-#[cfg(feature = "std")]
 #[macro_export]
 macro_rules! slice_as_array_transmute {
     ($slice:expr) => {
@@ -44,7 +39,6 @@ macro_rules! slice_as_array_transmute {
     };
 }
 
-#[cfg(feature = "std")]
 #[macro_export]
 macro_rules! slice_as {
     ($slice:expr, $wrapper:ty, $note:literal) => {{
@@ -76,7 +70,6 @@ macro_rules! slice_as {
     }};
 }
 
-#[cfg(feature = "std")]
 #[tonic::async_trait]
 impl Signer for MySign {
     /// BLS12-381 Signer service implementation
@@ -199,13 +192,11 @@ impl Signer for MySign {
     }
 }
 
-#[cfg(feature = "std")]
 extern crate ctrlc;
 
 /// Default UDS path that Rusk GRPC-server will connect to.
 pub const SOCKET_PATH: &str = "/tmp/bls12381svc.sock";
 
-#[cfg(feature = "std")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let path = "127.0.0.1:9476".parse().unwrap();
@@ -241,9 +232,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(not(unix))]
 fn main() {
     panic!("Unix Domain Sockets can only be used on unix systems!");
-}
-
-#[cfg(not(feature = "std"))]
-fn main() {
-    panic!("std feature required");
 }
