@@ -1,12 +1,22 @@
 build:
+	if [ -d bls/bls12_381-sign ]; \
+	then \
+		cd bls/bls12_381-sign \
+		&& git pull; \
+	else \
+  		cd bls \
+  		&& git clone https://github.com/dusk-network/bls12_381-sign \
+  		&& cd bls12_381-sign \
+		&& git checkout microservice; \
+	fi; \
 	if [ $(shell uname -o) = "GNU/Linux" ]; \
 	then \
 		protoc --proto_path=proto proto/bls12381sig.proto \
 			--go_opt=paths=source_relative \
-			--go_out=plugins=grpc:proto \
+			--go_out=plugins=grpc:../proto \
 		&& cargo build --release \
-		&& cp target/release/bls12381svc ../bls12381svc_ubuntu-latest \
-		&& cp target/release/libdusk_bls12_381_sign.a ..libdusk_bls12_381_sign_ubuntu-latest.a; \
+		&& cp target/release/bls12381svc ../../bls12381svc_ubuntu-latest \
+		&& cp target/release/libdusk_bls12_381_sign.a ../..libdusk_bls12_381_sign_ubuntu-latest.a; \
 	else \
 		echo "not implemented yet for mac or windows"; \
 	fi; \
