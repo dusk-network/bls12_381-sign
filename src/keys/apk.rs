@@ -8,7 +8,6 @@
 use crate::{hash::h1, Signature};
 
 use crate::{Error, PublicKey};
-use dusk_bls12_381::G2Affine;
 use dusk_bytes::Serializable;
 
 /// Aggregated form of a BLS public key.
@@ -62,7 +61,7 @@ impl APK {
     /// performance is critical.
     ///
     /// For secure serialization, check `to_bytes`
-    pub fn to_raw_bytes(&self) -> [u8; G2Affine::RAW_SIZE] {
+    pub fn to_raw_bytes(&self) -> [u8; dusk_bls12_381::G2Affine::RAW_SIZE] {
         self.0.to_raw_bytes()
     }
 

@@ -12,10 +12,10 @@ use dusk_bytes::Serializable;
 use libc::{c_int, c_uchar, size_t};
 use std::{ptr, slice};
 
-const SK_SIZE: usize = SecretKey::SIZE;
-const SIG_SIZE: usize = Signature::SIZE;
-const PK_SIZE: usize = PublicKey::SIZE;
-const PK_RAW_SIZE: usize = G2Affine::RAW_SIZE;
+pub const SK_SIZE: usize = SecretKey::SIZE;
+pub const SIG_SIZE: usize = Signature::SIZE;
+pub const PK_SIZE: usize = PublicKey::SIZE;
+pub const PK_RAW_SIZE: usize = G2Affine::RAW_SIZE;
 
 const BLS_OK: c_int = 0;
 
@@ -193,39 +193,13 @@ pub unsafe extern "C" fn pk_to_raw(
 }
 
 #[no_mangle]
-/// Aggregate a set of raw [`PublicKey`] into the raw [`APK`]. Returns a
-/// compressed [`APK`]
-pub unsafe extern "C" fn aggregate_pk_raw(
-    apk_ptr: *const [c_uchar; PK_RAW_SIZE],
-    pk_ptr: *mut u8,
-    pk_len: size_t,
+/// Aggregate a set of raw [`PublicKey`]. Returns a compressed [`APK`]
+pub unsafe extern "C" fn aggregate_pks_unchecked(
+    pks_ptr: *mut u8,
+    pks_len: size_t,
     ret_ptr: *mut u8,
-) -> c_int {
-    let apk = APK::from_slice_unchecked(&*apk_ptr);
-    raw_aggregate(apk, pk_ptr, pk_len, ret_ptr)
-}
-
-#[no_mangle]
-/// Aggregate a set of raw [`PublicKey`] into a new [`APK`] created from raw
-/// [`PublicKey`]. Returns a compressed [`APK`]
-pub unsafe extern "C" fn create_and_aggregate_pk_raw(
-    original_pk_ptr: *const [c_uchar; PK_RAW_SIZE],
-    pk_ptr: *mut u8,
-    pk_len: size_t,
-    ret_ptr: *mut u8,
-) -> c_int {
-    let pk = PublicKey::from_slice_unchecked(&*original_pk_ptr);
-    let apk = APK::from(&pk);
-    raw_aggregate(apk, pk_ptr, pk_len, ret_ptr)
-}
-
-unsafe fn raw_aggregate(
-    mut apk: APK,
-    pk_ptr: *mut u8,
-    pk_len: size_t,
-    ret_ptr: *mut u8,
-) -> c_int {
-    let pk_slice = slice::from_raw_parts(pk_ptr, pk_len);
+) {
+    let pk_slice = slice::from_raw_parts(pks_ptr, pks_len);
     let pks: Vec<PublicKey> = pk_slice
         .chunks(PK_RAW_SIZE)
         .map(|bytes| {
@@ -234,8 +208,7 @@ unsafe fn raw_aggregate(
             PublicKey::from_slice_unchecked(&arr)
         })
         .collect();
-
-    apk.aggregate(&pks);
+    let mut apk = APK::from(pks.get_unchecked(0));
+    apk.aggregate(&pks[1..]);
     ptr::copy_nonoverlapping(&apk.to_bytes()[0] as *const u8, ret_ptr, PK_SIZE);
-    BLS_OK
 }
