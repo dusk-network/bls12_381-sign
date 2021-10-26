@@ -10,6 +10,7 @@ extern crate test;
 
 mod benches {
     use dusk_bls12_381_sign::{PublicKey, SecretKey, APK};
+    use dusk_bytes::Serializable;
     use rand_core::{OsRng, RngCore};
     use test::Bencher;
 
@@ -57,5 +58,22 @@ mod benches {
         let mut msg = [0u8; 100];
         (&mut OsRng::default()).fill_bytes(&mut msg);
         msg
+    }
+
+    mod deser {
+        use super::*;
+        #[bench]
+        fn bench_deser_compressed(b: &mut Bencher) {
+            let sk = SecretKey::random(&mut OsRng);
+            let bytes = PublicKey::from(&sk).to_bytes();
+            b.iter(|| PublicKey::from_bytes(&bytes).unwrap());
+        }
+
+        #[bench]
+        fn bench_deser_uncompressed(b: &mut Bencher) {
+            let sk = SecretKey::random(&mut OsRng);
+            let raw = PublicKey::from(&sk).to_raw_bytes();
+            b.iter(|| unsafe { PublicKey::from_slice_unchecked(&raw) });
+        }
     }
 }

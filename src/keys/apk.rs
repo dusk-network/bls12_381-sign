@@ -8,6 +8,7 @@
 use crate::{hash::h1, Signature};
 
 use crate::{Error, PublicKey};
+use dusk_bls12_381::G2Affine;
 use dusk_bytes::Serializable;
 
 /// Aggregated form of a BLS public key.
@@ -53,5 +54,28 @@ impl APK {
     /// for the same message. Distinct messages are not supported.
     pub fn verify(&self, sig: &Signature, msg: &[u8]) -> Result<(), Error> {
         self.0.verify(sig, msg)
+    }
+
+    /// Raw bytes representation
+    ///
+    /// The intended usage of this function is for trusted sets of data where
+    /// performance is critical.
+    ///
+    /// For secure serialization, check `to_bytes`
+    pub fn to_raw_bytes(&self) -> [u8; G2Affine::RAW_SIZE] {
+        self.0.to_raw_bytes()
+    }
+
+    /// Create a `APK` from a set of bytes created by `APK::to_raw_bytes`.
+    ///
+    /// # Safety
+    ///
+    /// No check is performed and no constant time is granted. The expected
+    /// usage of this function is for trusted bytes where performance is
+    /// critical.
+    ///
+    /// For secure serialization, check `from_bytes`
+    pub unsafe fn from_slice_unchecked(bytes: &[u8]) -> Self {
+        APK(PublicKey::from_slice_unchecked(bytes))
     }
 }

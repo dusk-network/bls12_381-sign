@@ -66,4 +66,28 @@ impl PublicKey {
         let gx = self.0 * t;
         gx.into()
     }
+
+    /// Raw bytes representation
+    ///
+    /// The intended usage of this function is for trusted sets of data where
+    /// performance is critical.
+    ///
+    /// For secure serialization, check `to_bytes`
+    pub fn to_raw_bytes(&self) -> [u8; G2Affine::RAW_SIZE] {
+        self.0.to_raw_bytes()
+    }
+
+    /// Create a `PublicKey` from a set of bytes created by
+    /// `PublicKey::to_raw_bytes`.
+    ///
+    /// # Safety
+    ///
+    /// No check is performed and no constant time is granted. The expected
+    /// usage of this function is for trusted bytes where performance is
+    /// critical.
+    ///
+    /// For secure serialization, check `from_bytes`
+    pub unsafe fn from_slice_unchecked(bytes: &[u8]) -> Self {
+        Self(G2Affine::from_slice_unchecked(bytes))
+    }
 }
