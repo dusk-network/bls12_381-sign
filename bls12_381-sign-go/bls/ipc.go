@@ -1,10 +1,12 @@
+//go:build !windows
+// +build !windows
+
 package bls
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/dusk-network/bls12_381-sign-go/bls/proto"
 	"google.golang.org/grpc"
 	"io/ioutil"
 	"net"
@@ -12,8 +14,6 @@ import (
 	"os/exec"
 	"syscall"
 	"time"
-
-	bls12381svc "github.com/dusk-network/bls12_381-sign-go"
 )
 
 type Bls12381Sign interface {
@@ -49,7 +49,7 @@ func SwitchToIPC() {
 type ipcState struct {
 	connected bool
 	cmd       *exec.Cmd
-	proto.SignerClient
+	SignerClient
 	*grpc.ClientConn
 }
 
@@ -68,7 +68,7 @@ func (s *ipcState) connect() {
 	if _, err := os.Stat(ipcSvcBinPath); os.IsNotExist(err) {
 		// write the IPC service binary to disk
 		if err := ioutil.WriteFile(
-			ipcSvcBinPath, bls12381svc.Binary, 0o700,
+			ipcSvcBinPath, Binary, 0o700,
 		); err != nil {
 			panic(err) // not sure what better to do just yet
 		}
@@ -100,7 +100,7 @@ func (s *ipcState) connect() {
 		panic(err)
 	}
 
-	s.SignerClient = proto.NewSignerClient(s.ClientConn)
+	s.SignerClient = NewSignerClient(s.ClientConn)
 	s.ClientConn.Connect()
 	s.connected = true
 }
@@ -150,7 +150,7 @@ func (s *ipcState) GenerateKeys() (secret []byte, public []byte) {
 	ctx, cancel := context.WithCancel(context.Background())
 	keys, err := s.SignerClient.GenerateKeys(
 		ctx,
-		&proto.GenerateKeysRequest{},
+		&GenerateKeysRequest{},
 	)
 	if err != nil {
 		eprintln(err)
@@ -171,7 +171,7 @@ func (s *ipcState) Sign(sk, pk, msg []byte) (
 		return
 	}
 	sig, err := s.SignerClient.Sign(context.Background(),
-		&proto.SignRequest{
+		&SignRequest{
 			SecretKey: sk,
 			PublicKey: pk,
 			Message:   msg,
@@ -189,9 +189,9 @@ func (s *ipcState) Verify(apk, sig, msg []byte) (err error) {
 		eprintln("attempting to call API without being connected")
 		return
 	}
-	var vr *proto.VerifyResponse
+	var vr *VerifyResponse
 	vr, err = s.SignerClient.Verify(context.Background(),
-		&proto.VerifyRequest{
+		&VerifyRequest{
 			Apk:       apk,
 			Signature: sig,
 			Message:   msg,
@@ -208,9 +208,9 @@ func (s *ipcState) CreateApk(pk []byte) (apk []byte, err error) {
 		eprintln("attempting to call API without being connected")
 		return
 	}
-	var a *proto.CreateAPKResponse
+	var a *CreateAPKResponse
 	a, err = s.SignerClient.CreateAPK(context.Background(),
-		&proto.CreateAPKRequest{
+		&CreateAPKRequest{
 			PublicKey: pk,
 		},
 	)
@@ -226,9 +226,9 @@ func (s *ipcState) AggregatePk(apk []byte, pks ...[]byte) (
 		eprintln("attempting to call API without being connected")
 		return
 	}
-	var a *proto.AggregateResponse
+	var a *AggregateResponse
 	a, err = s.SignerClient.AggregatePK(context.Background(),
-		&proto.AggregatePKRequest{
+		&AggregatePKRequest{
 			APK:  apk,
 			Keys: pks,
 		},
@@ -245,9 +245,9 @@ func (s *ipcState) AggregateSig(sig []byte, sigs ...[]byte) (
 		eprintln("attempting to call API without being connected")
 		return
 	}
-	var a *proto.AggregateResponse
+	var a *AggregateResponse
 	a, err = s.SignerClient.AggregateSig(context.Background(),
-		&proto.AggregateSigRequest{
+		&AggregateSigRequest{
 			Signature:  sig,
 			Signatures: sigs,
 		},

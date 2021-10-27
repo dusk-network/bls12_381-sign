@@ -1,4 +1,4 @@
-package bls12381svc
+package bls
 
 import (
 	_ "embed"

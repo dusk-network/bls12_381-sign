@@ -1,8 +1,8 @@
 package bls
 
-// #cgo darwin LDFLAGS: -L../ -ldusk_bls12_381_sign_macos-latest -ldl -lm
-// #cgo linux LDFLAGS: -L../ -ldusk_bls12_381_sign_ubuntu-latest -ldl -lm
-// #include "../libbls.h"
+// #cgo darwin LDFLAGS: -L./ -ldusk_bls12_381_sign_macos-latest -ldl -lm
+// #cgo linux LDFLAGS: -L./ -ldusk_bls12_381_sign_ubuntu-latest -ldl -lm
+// #include "./libbls.h"
 import "C"
 
 import (
