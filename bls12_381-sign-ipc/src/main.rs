@@ -12,6 +12,7 @@ mod unix;
 tonic::include_proto!("signer");
 
 use {
+    std::fs::remove_file,
     aggregate_response::Agg::Code,
     create_apk_response::Apk::Apk,
     dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK},
@@ -199,15 +200,8 @@ pub const SOCKET_PATH: &str = "/tmp/bls12381svc.sock";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // let path = "127.0.0.1:9476".parse().unwrap();
-    let path = SOCKET_PATH;
-    let uds = UnixListener::bind(path)?;
-
-    // adding our service to our server.
-    let signeur = MySign::default();
-
-    let signer = SignerServer::new(signeur);
-
+    // Set up a unix domain socket at the default path
+    let uds = UnixListener::bind(SOCKET_PATH)?;
     let incoming = {
         async_stream::stream! {
             loop{
@@ -217,13 +211,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
+    // Make sure to remove the socket, and shut down on interrupt. This is the normal way to
+    // terminate the service
     ctrlc::set_handler(move || {
+        match remove_file(SOCKET_PATH) {
+            Ok(_) => { println!("\nremoved socket at path: {}", SOCKET_PATH)}
+            Err(e) => { println!("error: {:?}", e)}
+        };
         exit(0);
     })?;
+
     Server::builder()
-        // .accept_http1(false)
-        .add_service(signer)
-        // .serve(path)
+        .add_service(SignerServer::new(MySign::default()))
         .serve_with_incoming(incoming)
         .await?;
     Ok(())

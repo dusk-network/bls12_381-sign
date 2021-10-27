@@ -10,8 +10,7 @@ use std::{
 };
 
 use {
-    tokio::io::ReadBuf,
-    tokio::io::{AsyncRead, AsyncWrite},
+    tokio::io::{ReadBuf, AsyncRead, AsyncWrite},
     tonic::transport::server::Connected,
 };
 
