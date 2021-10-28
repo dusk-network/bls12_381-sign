@@ -19,12 +19,11 @@ use {
     futures::TryFutureExt,
     sign_response::Sig::Signature as ResponseSignature,
     signer_server::{Signer, SignerServer},
-    // std::path::Path,
+    dusk_bytes::Serializable,
     std::process::exit,
     tokio::net::UnixListener,
     tonic::{transport::Server, Request, Response, Status},
     verify_response::Ver::Valid,
-    // log,
 };
 
 #[derive(Default)]
@@ -45,17 +44,17 @@ macro_rules! slice_as {
     ($slice:expr, $wrapper:ty, $note:literal) => {{
         unsafe fn this_transmute(
             xs: &[u8],
-        ) -> &[u8; <$wrapper>::serialized_size()] {
+        ) -> &[u8; <$wrapper>::SIZE] {
             slice_as_array_transmute!(xs.as_ptr())
         }
 
         let s: &[u8] = $slice;
-        if s.len() != <$wrapper>::serialized_size() {
+        if s.len() != <$wrapper>::SIZE {
             return Err(Status::invalid_argument(format!(
                 "{}: provided vector is wrong length: {} should be {}",
                 $note,
                 s.len(),
-                <$wrapper>::serialized_size(),
+                <$wrapper>::SIZE,
             )));
         } else {
             match <$wrapper>::from_bytes(unsafe { this_transmute(s) }) {
@@ -81,7 +80,7 @@ impl Signer for MySign {
         _request: Request<GenerateKeysRequest>,
     ) -> Result<Response<GenerateKeysResponse>, Status> {
         // get a new random secret key from system entropy
-        let sk = SecretKey::new(&mut rand_core::OsRng);
+        let sk = SecretKey::random(&mut rand_core::OsRng);
 
         // construct the gRPC response from the key and return it
         Ok(Response::new(GenerateKeysResponse {

@@ -60,7 +60,6 @@ impl Serializable<32> for SecretKey {
     }
 }
 
-#[cfg(feature = "std")]
 impl SecretKey {
     /// Sign a message, producing a [`Signature`].
     /// The signature produced is vulnerable to a rogue-key attack.

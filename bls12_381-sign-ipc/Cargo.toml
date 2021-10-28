@@ -8,6 +8,7 @@ edition = "2018"
 [dependencies]
 dusk-bls12_381-sign = { path = "../bls12_381-sign" }
 async-stream = "0.3"
+dusk-bytes = "0.1"
 #blake2 = { version = "0.9", default-features = false, optional = true }
 #canonical = { version = "0.6", optional = true }
 #canonical_derive = { version = "0.6", optional = true }
