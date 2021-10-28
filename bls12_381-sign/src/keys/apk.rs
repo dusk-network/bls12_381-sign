@@ -4,6 +4,7 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
+#[cfg(feature = "std")]
 use crate::{hash::h1, Signature};
 
 use crate::{Error, PublicKey};
@@ -28,6 +29,7 @@ impl Serializable<96> for APK {
     }
 }
 
+#[cfg(feature = "std")]
 impl From<&PublicKey> for APK {
     fn from(pk: &PublicKey) -> Self {
         let t = h1(pk);
@@ -36,6 +38,7 @@ impl From<&PublicKey> for APK {
     }
 }
 
+#[cfg(feature = "std")]
 impl APK {
     /// Aggregate a set of [`PublicKey`] into the [`APK`].
     pub fn aggregate(&mut self, pks: &[PublicKey]) {
