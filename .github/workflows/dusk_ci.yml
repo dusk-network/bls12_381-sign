@@ -33,7 +33,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --no-default-features --target thumbv6m-none-eabi
+          args: -p bls12_381-sign --no-default-features --target thumbv6m-none-eabi
 
   test_nightly:
     name: Nightly tests
