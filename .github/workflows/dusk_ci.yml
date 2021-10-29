@@ -33,7 +33,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: -p bls12_381-sign --no-default-features --target thumbv6m-none-eabi
+          args: --workspace --exclude dusk-bls12_381-sign-ipc --no-default-features --target thumbv6m-none-eabi
 
   test_nightly:
     name: Nightly tests
