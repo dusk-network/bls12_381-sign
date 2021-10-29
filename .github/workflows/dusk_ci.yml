@@ -11,6 +11,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
+      - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: install
@@ -28,6 +29,7 @@ jobs:
         with:
           profile: minimal
           target: thumbv6m-none-eabi
+      - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: check
@@ -41,6 +43,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
+      - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: test
