@@ -12,14 +12,14 @@ mod unix;
 tonic::include_proto!("signer");
 
 use {
-    std::fs::remove_file,
     aggregate_response::Agg::Code,
     create_apk_response::Apk::Apk,
     dusk_bls12_381_sign::{PublicKey, SecretKey, Signature, APK},
+    dusk_bytes::Serializable,
     futures::TryFutureExt,
     sign_response::Sig::Signature as ResponseSignature,
     signer_server::{Signer, SignerServer},
-    dusk_bytes::Serializable,
+    std::fs::remove_file,
     std::process::exit,
     tokio::net::UnixListener,
     tonic::{transport::Server, Request, Response, Status},
@@ -42,9 +42,7 @@ macro_rules! slice_as_array_transmute {
 #[macro_export]
 macro_rules! slice_as {
     ($slice:expr, $wrapper:ty, $note:literal) => {{
-        unsafe fn this_transmute(
-            xs: &[u8],
-        ) -> &[u8; <$wrapper>::SIZE] {
+        unsafe fn this_transmute(xs: &[u8]) -> &[u8; <$wrapper>::SIZE] {
             slice_as_array_transmute!(xs.as_ptr())
         }
 
@@ -214,8 +212,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // terminate the service
     ctrlc::set_handler(move || {
         match remove_file(SOCKET_PATH) {
-            Ok(_) => { println!("\nremoved socket at path: {}", SOCKET_PATH)}
-            Err(e) => { println!("error: {:?}", e)}
+            Ok(_) => {
+                println!("\nremoved socket at path: {}", SOCKET_PATH)
+            }
+            Err(e) => {
+                println!("error: {:?}", e)
+            }
         };
         exit(0);
     })?;
