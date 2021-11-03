@@ -14,12 +14,15 @@ import (
 // binaries defined below. This enables the functions to be swapped with zero
 // additional call cost
 var (
-	GenerateKeys = cgo.GenerateKeys
-	Sign         = cgo.Sign
-	Verify       = cgo.Verify
-	CreateApk    = cgo.CreateApk
-	AggregatePk  = cgo.AggregatePk
-	AggregateSig = cgo.AggregateSig
+	GenerateKeys          = cgo.GenerateKeys
+	GenerateKeysWithRaw   = cgo.GenerateKeysWithRaw
+	Sign                  = cgo.Sign
+	Verify                = cgo.Verify
+	CreateApk             = cgo.CreateApk
+	AggregatePk           = cgo.AggregatePk
+	AggregatePKsUnchecked = cgo.AggregatePKsUnchecked
+	AggregateSig          = cgo.AggregateSig
+	PkToRaw               = cgo.PkToRaw
 )
 
 // Cgo is a stateless binary interface to the API
@@ -36,6 +39,19 @@ func (*Cgo) GenerateKeys() ([]byte, []byte) {
 
 	C.generate_keys(sk_ptr, pk_ptr)
 	return skBuf, pkBuf
+}
+
+func (*Cgo) GenerateKeysWithRaw() ([]byte, []byte, []byte) {
+	skBuf := make([]byte, C.SK_SIZE)
+	pkBuf := make([]byte, C.PK_SIZE)
+	pkBufRaw := make([]byte, C.PK_RAW_SIZE)
+
+	sk_ptr := toPtr(skBuf)
+	pk_ptr := toPtr(pkBuf)
+	pk_raw_ptr := toPtr(pkBufRaw)
+
+	C.generate_keys_with_raw(sk_ptr, pk_ptr, pk_raw_ptr)
+	return skBuf, pkBuf, pkBufRaw
 }
 
 func (*Cgo) Sign(sk, pk, msg []byte) ([]byte, error) {
@@ -78,6 +94,22 @@ func (*Cgo) AggregatePk(apk []byte, pks ...[]byte) ([]byte, error) {
 	return retBuf, formatErr(code)
 }
 
+func (*Cgo) AggregatePKsUnchecked(pks ...[]byte) ([]byte, error) {
+	pkBytes := make([]byte, 0)
+	for _, pk := range pks {
+		if C.int(len(pk)) != C.PK_RAW_SIZE {
+			return nil, errors.New("invalid bytes provided")
+		}
+		pkBytes = append(pkBytes, pk...)
+	}
+
+	pk_ptr := toPtr(pkBytes)
+	retBuf := make([]byte, C.PK_SIZE)
+	ret_ptr := toPtr(retBuf)
+	C.aggregate_pks_unchecked(pk_ptr, C.size_t(len(pkBytes)), ret_ptr)
+	return retBuf, nil
+}
+
 func (*Cgo) AggregateSig(sig []byte, sigs ...[]byte) ([]byte, error) {
 	sig_ptr := toPtr(sig)
 	sigBytes := make([]byte, 0)
@@ -90,6 +122,14 @@ func (*Cgo) AggregateSig(sig []byte, sigs ...[]byte) ([]byte, error) {
 	ret_ptr := toPtr(retBuf)
 	code := C.aggregate_sig(sig_ptr, sigs_ptr, C.size_t(len(sigBytes)), ret_ptr)
 	return retBuf, formatErr(code)
+}
+
+func (*Cgo) PkToRaw(pk []byte) ([]byte, error) {
+	pk_ptr := toPtr(pk)
+	pkRawBuf := make([]byte, C.PK_RAW_SIZE)
+	pkRaw_ptr := toPtr(pkRawBuf)
+	code := C.pk_to_raw(pk_ptr, pkRaw_ptr)
+	return pkRawBuf, formatErr(code)
 }
 
 func toPtr(data []byte) *C.uchar {

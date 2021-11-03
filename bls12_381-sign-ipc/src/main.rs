@@ -23,7 +23,7 @@ use {
     std::process::exit,
     tokio::net::UnixListener,
     tonic::{transport::Server, Request, Response, Status},
-    verify_response::Ver::Valid,
+    verify_response::Ver,
 };
 
 #[derive(Default)]
@@ -122,7 +122,7 @@ impl Signer for MySign {
 
         // return whether the verification returned no error
         Ok(Response::new(VerifyResponse {
-            ver: Some(Valid(!res.is_err())),
+            ver: Some(Ver::Valid(!res.is_err())),
         }))
     }
 
