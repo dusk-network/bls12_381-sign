@@ -12,10 +12,10 @@ endif
 all: goprotos servicebinaries build test
 
 goprotos:
-ifeq (, $(shell which protoc))
+ifeq (,$(wildcard ./usr/local/bin/protoc))
 	make installprotoc
 endif
-	protoc --proto_path=./proto ./proto/bls12381sig.proto \
+	./usr/local/bin/protoc --proto_path=./proto ./proto/bls12381sig.proto \
 		--go_opt=paths=source_relative \
 		--go_out=plugins=grpc:./bls/; \
 
@@ -35,11 +35,13 @@ bench: build
 
 clean:
 	rm -fv /tmp/bls12381svc*
+	rm -rf ./usr
 
 installprotoc:
 	curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.14.0/$(protoc)
-	sudo unzip -o $(protoc) -d /usr/local bin/protoc
-	sudo unzip -o $(protoc) -d /usr/local 'include/*'
+	mkdir -p ./usr/local
+	unzip -o $(protoc) -d ./usr/local bin/protoc
+	unzip -o $(protoc) -d ./usr/local 'include/*'
 	rm -f $(protoc)
 	go install google.golang.org/grpc
 	go install github.com/golang/protobuf/protoc-gen-go
