@@ -4,5 +4,5 @@ import (
 	_ "embed"
 )
 
-//go:embed bls12381svc_ubuntu-latest
+//go:embed bls12381svc_linux
 var Binary []byte

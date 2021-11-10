@@ -7,13 +7,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"google.golang.org/grpc"
 	"io/ioutil"
 	"net"
 	"os"
 	"os/exec"
 	"syscall"
 	"time"
+
+	"google.golang.org/grpc"
 )
 
 type Bls12381Sign interface {
