@@ -84,11 +84,6 @@ jobs:
           override: true
       - name: Rustfmt
         run: rustup component add rustfmt
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-      - name: Protobuf go plugins
-        run: go install google.golang.org/grpc &&
-          go install github.com/golang/protobuf/protoc-gen-go
       - name: Test
         run: make test
       - name: Upload object for platform
