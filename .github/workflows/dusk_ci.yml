@@ -88,10 +88,6 @@ jobs:
         run: make goprotos
       - name: Generate Rust FFI and IPC binaries
         run: make servicebinaries
-      - name: Build Go Stuff
-        run: go build ./...
-      - name: Test Go Stuff
-        run: go test ./...
       - name: Upload object for platform
         uses: actions/upload-artifact@v2
         with:
@@ -102,5 +98,11 @@ jobs:
         with:
           name: bls12381svc_${{ matrix.os }}
           path: target/release/bls12381svc
-      - name: Run all bls12-381 benches for Cgo, IPC and the Rust benchmarks
-        run: /usr/bin/make benchmem
+      - name: Build Go Stuff
+        run: go build ./...
+      - name: Test Go Stuff
+        run: go test ./...
+      - name: Run all bls12-381 benches for Cgo, IPC
+        run: go test -run=. -bench=. -benchtime=5s -count 1 -benchmem ./...
+      - name: Run all bls12-381 benches for Rust
+        run: cargo bench
