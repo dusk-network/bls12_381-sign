@@ -84,8 +84,14 @@ jobs:
           override: true
       - name: Rustfmt
         run: rustup component add rustfmt
-      - name: Test
-        run: make test
+      - name: Generate Go protobuf implementation
+        run: make goprotos
+      - name: Generate Rust FFI and IPC binaries
+        run: make servicebinaries
+      - name: Build Go Stuff
+        run: go build ./...
+      - name: Test Go Stuff
+        run: go test ./...
       - name: Upload object for platform
         uses: actions/upload-artifact@v2
         with:
