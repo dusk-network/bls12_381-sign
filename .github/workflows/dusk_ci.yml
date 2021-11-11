@@ -90,11 +90,11 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: libdusk_bls12_381_sign_${{ matrix.os }}.a
-          path: bls12_381-sign/target/release/libdusk_bls12_381_sign.a
+          path: target/release/libdusk_bls12_381_sign.a
       - name: Upload microservice for platform
         uses: actions/upload-artifact@v2
         with:
           name: bls12381svc_${{ matrix.os }}
-          path: bls12_381-sign/target/release/bls12381svc
+          path: target/release/bls12381svc
       - name: Run all bls12-381 benches for Cgo, IPC and the Rust benchmarks
         run: /usr/bin/make benchmem
