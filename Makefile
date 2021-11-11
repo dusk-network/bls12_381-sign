@@ -1,6 +1,7 @@
 OS := $(shell sh -c 'uname -s 2>/dev/null || echo linux' | tr "[:upper:]" "[:lower:]")
 PROTOC := $(shell which protoc)
 platform = ubuntu-latest
+
 # Protobuf compiler (aka Protoc)
 ifeq ($(OS), linux)
 protoc=protoc-3.14.0-linux-x86_64.zip
