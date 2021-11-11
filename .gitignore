@@ -1,3 +1,10 @@
 /target
 Cargo.lock
 /.idea
+/usr/
+/usr/local/include/
+/usr/local/include/google/protobuf/
+/usr/local/include/google/protobuf/compiler/
+/bls/libdusk_bls12_381_sign_*.a
+/bls/bls12381svc_*
+bls/bls12381sig.pb.go
