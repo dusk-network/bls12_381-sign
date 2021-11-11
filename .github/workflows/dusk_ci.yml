@@ -88,16 +88,15 @@ jobs:
         run: make goprotos
       - name: Generate Rust FFI and IPC binaries
         run: make servicebinaries
-      - name: Upload object for platform
+      - name: Upload binaries for platform
         uses: actions/upload-artifact@v2
         with:
-          name: libdusk_bls12_381_sign_${{ matrix.os }}.a
-          path: target/release/libdusk_bls12_381_sign.a
-      - name: Upload microservice for platform
-        uses: actions/upload-artifact@v2
-        with:
-          name: bls12381svc_${{ matrix.os }}
-          path: target/release/bls12381svc
+          name: bls12_381_sign_${{ matrix.os }}
+          run: cp target/release/libdusk_bls12_381_sign.a bls/libdusk_bls12_381_sign_${{ matrix.os }}.a;
+               cp target/release/bls12381svc bls/bls12381svc_${{ matrix.os }}
+          path: |
+                bls/libdusk_bls12_381_sign_${{ matrix.os }}.a
+                bls/bls12381svc_${{ matrix.os }}
       - name: Build Go Stuff
         run: go build ./...
       - name: Test Go Stuff
