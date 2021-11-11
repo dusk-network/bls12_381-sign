@@ -14,9 +14,9 @@ endif
 all: goprotos servicebinaries build test
 
 goprotos:
-	ifeq (,$(wildcard ./usr/local/bin/protoc))
-		make installprotoc
-	endif
+ifeq (,$(wildcard ./usr/local/bin/protoc))
+	make installprotoc
+endif
 	./usr/local/bin/protoc --proto_path=./proto ./proto/bls12381sig.proto \
 		--go_opt=paths=source_relative \
 		--go_out=plugins=grpc:./bls/; \
