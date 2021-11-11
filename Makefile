@@ -1,12 +1,13 @@
 OS := $(shell sh -c 'uname -s 2>/dev/null || echo linux' | tr "[:upper:]" "[:lower:]")
 PROTOC := $(shell which protoc)
-
+PLATFORM := "ubuntu-latest"
 # Protobuf compiler (aka Protoc)
 ifeq ($(OS), linux)
 protoc=protoc-3.14.0-linux-x86_64.zip
 endif
 ifeq ($(OS), darwin)
 protoc = protoc-3.14.0-osx-x86_64.zip
+PLATFORM = "macos-latest"
 endif
 
 all: goprotos servicebinaries build test
@@ -21,8 +22,8 @@ endif
 
 servicebinaries:
 	cargo build --release \
-	&& cp target/release/bls12381svc ./bls/bls12381svc_$(OS) \
-	&& cp target/release/libdusk_bls12_381_sign.a ./bls/libdusk_bls12_381_sign_$(OS).a;
+	&& cp target/release/bls12381svc ./bls/bls12381svc_$(PLATFORM) \
+	&& cp target/release/libdusk_bls12_381_sign.a ./bls/libdusk_bls12_381_sign_$(PLATFORM).a;
 
 build: goprotos servicebinaries
 	go build ./...
