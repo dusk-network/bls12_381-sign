@@ -23,8 +23,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let matches = App::new("bls12381cli")
     //     .version("v0.1.0")
     //     .author("Loki <david@dusk.network>")
-    //     .about("Generate keys, sign, aggregate and verify messages using BLS12-381 elliptic curves")
-    //     .subcommand(App::new("gen")
+    //     .about("Generate keys, sign, aggregate and verify messages using
+    // BLS12-381 elliptic curves")     .subcommand(App::new("gen")
     //         .about("Generate a new BLS12-381 key pair"))
     //     .subcommand(App::new("sign")
     //         .about("Sign a message with a given key pair")
@@ -66,7 +66,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("Error generating a Channel");
 
     let mut client = SignerClient::new(channel);
-    // here we are just making a token request and not formatting the output correctly
+    // here we are just making a token request and not formatting the output
+    // correctly
     let request = tonic::Request::new(GenerateKeysRequest {});
     let response = client.generate_keys(request).await?;
     println!("Secret key {:?}", response.get_ref().secret_key);

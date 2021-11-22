@@ -19,6 +19,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: dusk-analyzer
+          args: --manifest-path rust/Cargo.toml
 
   check_nightly_no_std:
     name: Nightly check no_std
@@ -33,7 +34,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --workspace --exclude dusk-bls12_381-sign-ipc --no-default-features --target thumbv6m-none-eabi
+          args: --manifest-path rust/Cargo.toml --workspace --exclude dusk-bls12_381-sign-ipc --no-default-features --target thumbv6m-none-eabi
 
   test_nightly:
     name: Nightly tests
@@ -47,7 +48,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --release
+          args: --manifest-path rust/Cargo.toml --workspace --release
 
   fmt:
     name: Rustfmt
@@ -61,7 +62,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --manifest-path rust/Cargo.toml --all -- --check
 
   test:
     strategy:
@@ -84,24 +85,17 @@ jobs:
           override: true
       - name: Rustfmt
         run: rustup component add rustfmt
-      - name: Generate Go protobuf implementation
-        run: make goprotos
       - name: Generate Rust FFI and IPC binaries
-        run: make servicebinaries
+        run: make lib
       - name: Upload binaries for platform
         uses: actions/upload-artifact@v2
         with:
           name: bls12_381_sign_${{ matrix.os }}
-          run: cp target/release/libdusk_bls12_381_sign.a bls/libdusk_bls12_381_sign_${{ matrix.os }}.a;
-               cp target/release/bls12381svc bls/bls12381svc_${{ matrix.os }}
           path: |
-                bls/libdusk_bls12_381_sign_${{ matrix.os }}.a
-                bls/bls12381svc_${{ matrix.os }}
+                go/bls/cgo/libdusk_bls12_381_sign_${{ matrix.os }}.a
       - name: Build Go Stuff
-        run: go build ./...
+        run: make build
       - name: Test Go Stuff
-        run: go test ./...
+        run: make test
       - name: Run all bls12-381 benches for Cgo, IPC
-        run: go test -run=. -bench=. -benchtime=5s -count 1 -benchmem ./...
-      - name: Run all bls12-381 benches for Rust
-        run: cargo bench
+        run: make bench

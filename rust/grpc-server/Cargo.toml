@@ -6,7 +6,7 @@ authors = ["Loki <david@dusk.network>"]
 edition = "2018"
 
 [dependencies]
-dusk-bls12_381-sign = { path = "../bls12_381-sign" }
+dusk-bls12_381-sign = { version = "0.1.0", path = "../bls12_381-sign" }
 async-stream = "0.3"
 dusk-bytes = "0.1"
 futures = { version = "0.3", default-features = false, features = ["alloc"] }

@@ -11,7 +11,7 @@ protoc = protoc-3.14.0-osx-x86_64.zip
 platform = macos-latest
 endif
 
-all: schema lib grpc build test
+all: schema lib build test
 
 schema:
 ifeq (,$(wildcard ./tmp/protoc/bin/protoc))
@@ -22,12 +22,12 @@ endif
 		--go_out=plugins=grpc:./go/bls/grpc/; \
 
 lib:
-	(cd rust/bls12_381-sign && cargo build --release)
-	cp rust/bls12_381-sign/target/release/libdusk_bls12_381_sign.a ./go/bls/cgo/libdusk_bls12_381_sign_$(platform)
+	cargo build --workspace --manifest-path rust/Cargo.toml --exclude dusk-bls12_381-sign-ipc --release
+	cp rust/target/release/libdusk_bls12_381_sign.a ./go/bls/cgo/libdusk_bls12_381_sign_$(platform).a
 
 grpc:
-	(cd rust/grpc-server && cargo build --release)
-	cp rust/grpc-server/target/release/bls12381svc ./go/bls/cgo/bls12381svc_$(platform)
+	cargo build --workspace --manifest-path rust/Cargo.toml --release
+	cp rust/target/release/bls12381svc ./go/bls/grpc/bls12381svc_$(platform)
 
 build: schema lib grpc
 	(cd go/bls/cgo && go build)

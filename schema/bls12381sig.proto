@@ -5,7 +5,7 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 syntax = "proto3";
-package schema;
+package signer;
 option go_package = "github.com/dusk-network/bls12_381-sign/go/bls";
 
 // Signer must always satisfy github.com/dusk-network/bls12_381-sign/go/bls

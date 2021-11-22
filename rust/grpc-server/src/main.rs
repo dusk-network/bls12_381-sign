@@ -29,9 +29,9 @@ use {
 #[derive(Default)]
 pub struct MySign {}
 
-/// The following macros are written to minimize memory handling with [core::mem::transmute], and by
-/// early return on error from the calling function to reduce repeated match branches that are
-/// basically all the same
+/// The following macros are written to minimize memory handling with
+/// [core::mem::transmute], and by early return on error from the calling
+/// function to reduce repeated match branches that are basically all the same
 #[macro_export]
 macro_rules! slice_as_array_transmute {
     ($slice:expr) => {
@@ -116,8 +116,8 @@ impl Signer for MySign {
         let apk = slice_as!(&req.apk, APK, "APK");
         let sig = slice_as!(&req.signature, Signature, "Signature");
 
-        // verify the message matches the signature and the signature matches the
-        // given public key
+        // verify the message matches the signature and the signature matches
+        // the given public key
         let res = apk.verify(&sig, &req.message);
 
         // return whether the verification returned no error
@@ -208,8 +208,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    // Make sure to remove the socket, and shut down on interrupt. This is the normal way to
-    // terminate the service
+    // Make sure to remove the socket, and shut down on interrupt. This is the
+    // normal way to terminate the service
     ctrlc::set_handler(move || {
         match remove_file(SOCKET_PATH) {
             Ok(_) => {
