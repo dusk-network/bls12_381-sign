@@ -1,30 +1,12 @@
-# Implementation of [BLS signatures](https://crypto.stanford.edu/~dabo/pubs/papers/BLSmultisig.html) using the BLS12-381 curve.
+# BLS12-381 Curve Signature
 
-This implementation currently only supports rogue-key attack resistant batching, and does not support distinct message verification.
+This repo contains Dusk Network's [implementation](https://github.com/bls12_381-sign/rust/bls12_381-sign) of the BLS Signatures using the BLS12-381 curve
 
-## Benchmarks
+## Go
 
-### Machine specs
+Two options are provided to work with the library from Go:
 
-The benchmarks were ran on a 2020 13.3" MacBook Pro.
+1. Using unix sockets for IPC communication through GRPC with a rust service that calls the library.
+2. Using cgo bindings to interface directly with the library binaries.
 
-CPU:
-```
-$ lscpu
-Intel(R) Core(TM) i7-1068NG7 CPU @ 2.30GHz
-```
-
-RAM:
-```
-16 GB 3733 MHz LPDDR4X
-```
-
-### Results
-
-```
-test benches::bench_aggregate_pk    ... bench:   1,654,552 ns/iter (+/- 107,025)
-test benches::bench_aggregate_sig   ... bench:      36,893 ns/iter (+/- 3,399)
-test benches::bench_sign            ... bench:   1,480,169 ns/iter (+/- 106,151)
-test benches::bench_sign_vulnerable ... bench:   1,024,052 ns/iter (+/- 111,395)
-test benches::bench_verify          ... bench:   4,740,114 ns/iter (+/- 336,036)
-```
+## TBC...
