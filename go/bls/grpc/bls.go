@@ -91,7 +91,8 @@ func Disconnect() {
 		return
 	}
 
-	//  mark that we are not connected so nobody tries to use this
+	//  mark that we are not connected so nobody tries to use this (not concurrent safe!, but should only be done once
+	// at termination)
 	ipc.connected = false
 
 	// disconnect the IPC
@@ -102,7 +103,7 @@ func Disconnect() {
 	// stop the IPC service. The service knows SIGINT means shut down so it will
 	// stop and release its resources from this signal
 	if err := ipc.cmd.Process.Signal(syscall.SIGINT); err != nil {
-		panic(err)
+		eprintln(err)
 	}
 
 	// remove the socket file

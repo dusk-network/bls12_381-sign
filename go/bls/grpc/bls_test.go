@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConnectDisconnect(t *testing.T) {
+func TestConnect(t *testing.T) {
 	Connect()
 }
 
@@ -183,4 +183,8 @@ func TestAggregationSxS(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestDisconnect(t *testing.T) {
+	Disconnect()
 }
