@@ -11,42 +11,48 @@ protoc = protoc-3.14.0-osx-x86_64.zip
 platform = macos-latest
 endif
 
-all: goprotos servicebinaries build test
+all: schema lib build test
 
-goprotos:
-ifeq (,$(wildcard ./usr/local/bin/protoc))
-	make installprotoc
+schema:
+ifeq (,$(wildcard ./tmp/protoc/bin/protoc))
+	make protoc
 endif
-	./usr/local/bin/protoc --proto_path=./proto ./proto/bls12381sig.proto \
+	./tmp/protoc/bin/protoc --proto_path=./schema ./schema/bls12381sig.proto \
 		--go_opt=paths=source_relative \
-		--go_out=plugins=grpc:./bls/; \
+		--go_out=plugins=grpc:./go/bls/grpc/; \
 
-servicebinaries:
-	cargo build --release \
-	&& cp target/release/bls12381svc ./bls/bls12381svc_$(platform) \
-	&& cp target/release/libdusk_bls12_381_sign.a ./bls/libdusk_bls12_381_sign_$(platform).a;
+lib:
+	cargo build --workspace --manifest-path rust/Cargo.toml --exclude dusk-bls12_381-sign-ipc --release
+	cp rust/target/release/libdusk_bls12_381_sign.a ./go/bls/cgo/libdusk_bls12_381_sign_$(platform).a
 
-build: goprotos servicebinaries
-	go build ./...
+grpc:
+	cargo build --workspace --manifest-path rust/Cargo.toml --release
+	cp rust/target/release/bls12381svc ./go/bls/grpc/bls12381svc_$(platform)
+
+build: schema lib grpc
+	(cd go/bls/cgo && go build)
+	(cd go/bls/grpc && go build)
 
 test: build
-	go test -v ./...
+	(cd go/bls/cgo && go test)
+	(cd go/bls/grpc && go test)
 
 bench: build
-	go test -v -bench=. ./...
+	(cd go/bls/cgo && go test -v -bench=.)
+	(cd go/bls/grpc && go test -v -bench=.)
 
 clean:
 	rm -fv /tmp/bls12381svc*
-	rm -rf ./usr
+	rm -rf ./tmp
 
-installprotoc:
+protoc:
 	curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.14.0/$(protoc)
-	mkdir -p ./usr/local
-	unzip -o $(protoc) -d ./usr/local bin/protoc
-	unzip -o $(protoc) -d ./usr/local 'include/*'
+	mkdir -p ./tmp/protoc
+	unzip -o $(protoc) -d ./tmp/protoc bin/protoc
+	unzip -o $(protoc) -d ./tmp/protoc 'include/*'
 	rm -f $(protoc)
-	go install google.golang.org/grpc
-	go install github.com/golang/protobuf/protoc-gen-go
+	go install google.golang.org/grpc@v1.42.0
+	go install github.com/golang/protobuf/protoc-gen-go@latest
 
 memprofile:
 	go test -run=. -bench=. -benchtime=5s -count 1 -benchmem -cpuprofile=cpu.out -memprofile=mem.out -trace=trace.out ./... | tee bench.txt

@@ -1,7 +1,9 @@
+.DS_Store
 /target
+/rust/target
 Cargo.lock
-/.idea
-/usr/
-/usr/local/include/
-/usr/local/include/google/protobuf/
-/usr/local/include/google/protobuf/compiler/
+.idea
+/go/bls/grpc/bls12381svc_ubuntu-latest
+/go/bls/grpc/bls12381svc_macos-latest
+/go/bls/cgo/bls12381svc_ubuntu-latest
+/go/bls/cgo/bls12381svc_macos-latest
