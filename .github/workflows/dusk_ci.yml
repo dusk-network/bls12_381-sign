@@ -11,6 +11,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
+      - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: install
@@ -28,10 +29,11 @@ jobs:
         with:
           profile: minimal
           target: thumbv6m-none-eabi
+      - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --no-default-features --target thumbv6m-none-eabi
+          args: --workspace --exclude dusk-bls12_381-sign-ipc --no-default-features --target thumbv6m-none-eabi
 
   test_nightly:
     name: Nightly tests
@@ -41,6 +43,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
+      - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: test
@@ -59,3 +62,46 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
+
+  test:
+    strategy:
+      matrix:
+        go-version: [ 1.17.x ]
+        os: [ ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Change toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - name: Rustfmt
+        run: rustup component add rustfmt
+      - name: Generate Go protobuf implementation
+        run: make goprotos
+      - name: Generate Rust FFI and IPC binaries
+        run: make servicebinaries
+      - name: Upload binaries for platform
+        uses: actions/upload-artifact@v2
+        with:
+          name: bls12_381_sign_${{ matrix.os }}
+          run: cp target/release/libdusk_bls12_381_sign.a bls/libdusk_bls12_381_sign_${{ matrix.os }}.a;
+               cp target/release/bls12381svc bls/bls12381svc_${{ matrix.os }}
+          path: |
+                bls/libdusk_bls12_381_sign_${{ matrix.os }}.a
+                bls/bls12381svc_${{ matrix.os }}
+      - name: Build Go Stuff
+        run: go build ./...
+      - name: Test Go Stuff
+        run: go test ./...
+      - name: Run all bls12-381 benches for Cgo, IPC
+        run: go test -run=. -bench=. -benchtime=5s -count 1 -benchmem ./...
+      - name: Run all bls12-381 benches for Rust
+        run: cargo bench

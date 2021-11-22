@@ -1,2 +1,7 @@
 /target
 Cargo.lock
+/.idea
+/usr/
+/usr/local/include/
+/usr/local/include/google/protobuf/
+/usr/local/include/google/protobuf/compiler/
