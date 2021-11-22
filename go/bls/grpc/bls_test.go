@@ -16,12 +16,9 @@ import (
 
 func TestConnectDisconnect(t *testing.T) {
 	Connect()
-	defer Disconnect()
 }
 
 func TestGenerateKeysIPC(t *testing.T) {
-	Connect()
-	defer Disconnect()
 
 	sk, pk := GenerateKeys()
 	if sk == nil || pk == nil {
@@ -32,8 +29,6 @@ func TestGenerateKeysIPC(t *testing.T) {
 }
 
 func TestSignVerifyIPC(t *testing.T) {
-	Connect()
-	defer Disconnect()
 
 	sk, pk := GenerateKeys()
 	msg := make([]byte, 100)
@@ -55,8 +50,6 @@ func TestSignVerifyIPC(t *testing.T) {
 }
 
 func TestVerifyWrongKeyIPC(t *testing.T) {
-	Connect()
-	defer Disconnect()
 
 	sk, pk := GenerateKeys()
 	msg := make([]byte, 100)
@@ -77,8 +70,6 @@ func TestVerifyWrongKeyIPC(t *testing.T) {
 }
 
 func TestAggregationIPC(t *testing.T) {
-	Connect()
-	defer Disconnect()
 
 	// Generate keys
 	sk1, pk1 := GenerateKeys()
@@ -148,8 +139,6 @@ func TestAggregationSxS(t *testing.T) {
 	sig3 := mustDecode("869bea0b9cb94f30a0b71b50bafcb4fb985f5dbff8e4f783ebfc7228f82a12fb507c8e0ccb0b5230ddddcd6d70ff3f21")
 	aggSig := mustDecode("9607f61411bbc73fcdf0869ac7449b72020b59a4eee41edb7f5820213fcd8cf2d44375839f3ded7de7e9b741600acbeb")
 
-	Connect()
-	defer Disconnect()
 
 	sig1a, err := Sign(sk1, pk1, msg)
 	if err != nil {

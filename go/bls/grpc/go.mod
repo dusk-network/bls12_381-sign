@@ -1,4 +1,4 @@
-module github.com/dusk-network/bls12_381-sign/go/grpc-client/bls
+module github.com/dusk-network/bls12_381-sign/go/bls/grpc
 
 go 1.17
 
