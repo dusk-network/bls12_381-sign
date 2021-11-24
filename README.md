@@ -1,19 +1,19 @@
 # BLS12-381 Curve Signature
 
-This repo contains Dusk Network's [implementation](https://github.com/bls12_381-sign/rust/bls12_381-sign) of the BLS Signatures using the BLS12-381 curve. This implementation currently only supports rogue-key attack resistant batching, and does not support distinct message verification.
+This repo contains Dusk Network's [implementation](/rust/bls12_381-sign) of the BLS Signatures using the BLS12-381 curve. This implementation currently only supports rogue-key attack resistant batching, and does not support distinct message verification.
 
 ## Rust
 
-The [library](https://github.com/bls12_381-sign/rust/bls12_381-sign) is written in rust.
+The [library](/rust/bls12_381-sign) is written in rust.
 
-We also provide a sample IPC [micro-service](https://github.com/bls12_381-sign/rust/grpc-server) that provides a synchronous gRPC interface to the library for third-party clients.
+We also provide a sample IPC [micro-service](/rust/grpc-server) that provides a synchronous gRPC interface to the library for third-party clients.
 
 ## Go
 
 We provide a couple options to work with the library using Go:
 
-1. [Using CGo](https://github.com/bls12_381-sign/go/cgo/bls) to build and link directly to the lib binaries.
-1. [Using gRPC](https://github.com/bls12_381-sign/go/grpc/bls) to communicate with our simple lib IPC server.
+1. [Using CGo](/go/cgo/bls) to build and link directly to the lib binaries.
+1. [Using gRPC](/go/grpc/bls) to communicate with our simple lib IPC server.
 
 ## Benchmarks
 

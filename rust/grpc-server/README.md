@@ -1,9 +1,9 @@
-# gRPC Client for BLS12-381 Sign
+# gRPC Server for BLS12-381 Sign
 
-Implementation of a simple IPC-based server to provide a synchronous gRPC interface to the [BLS12-381 library](https://github.com/bls12_381-sign/rust/bls12_381-sign) to external parties.
+Implementation of a simple IPC-based server to provide a synchronous gRPC interface to the [BLS12-381 library](/rust/bls12_381-sign) to external parties.
 
 ## API definition
-We use protobuf to strictly define the API. The schema is available [here](https://github.com/bls12_381-sign/schema/bls12381sig.proto).
+We use protobuf to strictly define the API. The schema is available [here](/schema/bls12381sig.proto).
 
 ## Building
 
@@ -11,4 +11,4 @@ We use protobuf to strictly define the API. The schema is available [here](https
 
 ## Usage
 
-We provide a bloat-free [example](https://github.com/dusk-network/bls12_381-sign/go/grpc) of a client written in Go which fully describes all API methods that can be used for reference.
+We provide a bloat-free [example](/go/grpc/bls) of a client written in Go which fully describes all API methods that can be used for reference.

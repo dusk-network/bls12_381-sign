@@ -1,6 +1,6 @@
 # CGo Wrapper for BLS12-381 Sign
 
-`bls.go` exposes a CGo wrapper to the native rust [bls12-381 signing library](https://github.com/dusk-network/bls12_381-sign/rust/bls12_381-sign).
+`bls.go` exposes a CGo wrapper to the native rust [bls12-381 signing library](/rust/bls12_381-sign).
 
 ## Building
 
@@ -26,4 +26,4 @@ AggregateSig(sig []byte, sigs ...[]byte) ([]byte, error)
 PkToRaw(pk []byte) ([]byte, error)
 ````
 
-Please check [`bls_test.go`](https://github.com/dusk-network/bls12_381-sign/go/cgo/bls/bls_test.go) for a few examples.
+Please check [`bls_test.go`](/go/cgo/bls/bls_test.go) for a few examples.
