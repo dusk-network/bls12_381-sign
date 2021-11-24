@@ -11,6 +11,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
+      - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: install
@@ -18,6 +19,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: dusk-analyzer
+          args: --manifest-path rust/Cargo.toml
 
   check_nightly_no_std:
     name: Nightly check no_std
@@ -28,10 +30,11 @@ jobs:
         with:
           profile: minimal
           target: thumbv6m-none-eabi
+      - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --no-default-features --target thumbv6m-none-eabi
+          args: --manifest-path rust/Cargo.toml --workspace --exclude dusk-bls12_381-sign-ipc --no-default-features --target thumbv6m-none-eabi
 
   test_nightly:
     name: Nightly tests
@@ -41,10 +44,11 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
+      - run: rustup component add rustfmt
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --release
+          args: --manifest-path rust/Cargo.toml --workspace --release
 
   fmt:
     name: Rustfmt
@@ -58,4 +62,40 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --manifest-path rust/Cargo.toml --all -- --check
+
+  test:
+    strategy:
+      matrix:
+        go-version: [ 1.17.x ]
+        os: [ ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Change toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - name: Rustfmt
+        run: rustup component add rustfmt
+      - name: Generate Rust FFI and IPC binaries
+        run: make lib
+      - name: Upload binaries for platform
+        uses: actions/upload-artifact@v2
+        with:
+          name: bls12_381_sign_${{ matrix.os }}
+          path: |
+                go/cgo/bls/libdusk_bls12_381_sign_${{ matrix.os }}.a
+      - name: Build Go Stuff
+        run: make build
+      - name: Test Go Stuff
+        run: make test
+      - name: Run all bls12-381 benches for Cgo, IPC
+        run: make bench
