@@ -19,27 +19,27 @@ ifeq (,$(wildcard ./tmp/protoc/bin/protoc))
 endif
 	./tmp/protoc/bin/protoc --proto_path=./schema ./schema/bls12381sig.proto \
 		--go_opt=paths=source_relative \
-		--go_out=plugins=grpc:./go/bls/grpc/; \
+		--go_out=plugins=grpc:./go/grpc/bls/; \
 
 lib:
 	cargo build --workspace --manifest-path rust/Cargo.toml --exclude dusk-bls12_381-sign-ipc --release
-	cp rust/target/release/libdusk_bls12_381_sign.a ./go/bls/cgo/libdusk_bls12_381_sign_$(platform).a
+	cp rust/target/release/libdusk_bls12_381_sign.a ./go/cgo/bls/libdusk_bls12_381_sign_$(platform).a
 
 grpc:
 	cargo build --workspace --manifest-path rust/Cargo.toml --release
-	cp rust/target/release/bls12381svc ./go/bls/grpc/bls12381svc_$(platform)
+	cp rust/target/release/bls12381svc ./go/grpc/bls/bls12381svc_$(platform)
 
 build: schema lib grpc
-	(cd go/bls/cgo && go build)
-	(cd go/bls/grpc && go build)
+	(cd go/cgo/bls && go build)
+	(cd go/grpc/bls && go build)
 
 test: build
-	(cd go/bls/cgo && go test)
-	(cd go/bls/grpc && go test)
+	(cd go/cgo/bls && go test)
+	(cd go/grpc/bls && go test)
 
 bench: build
-	(cd go/bls/cgo && go test -v -bench=.)
-	(cd go/bls/grpc && go test -v -bench=.)
+	(cd go/cgo/bls && go test -v -bench=.)
+	(cd go/grpc/bls && go test -v -bench=.)
 
 clean:
 	rm -fv /tmp/bls12381svc*

@@ -1,4 +1,4 @@
-module github.com/dusk-network/bls12_381-sign/go/bls/cgo
+module github.com/dusk-network/bls12_381-sign/go/cgo/bls
 
 go 1.17
 

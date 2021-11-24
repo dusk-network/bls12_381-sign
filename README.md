@@ -12,8 +12,8 @@ We also provide a sample IPC [micro-service](https://github.com/bls12_381-sign/r
 
 We provide a couple options to work with the library using Go:
 
-1. [Using CGo](https://github.com/bls12_381-sign/go/bls/cgo) to build and link directly to the lib binaries.
-1. [Using gRPC](https://github.com/bls12_381-sign/go/bls/grpc) to communicate with our simple lib IPC server.
+1. [Using CGo](https://github.com/bls12_381-sign/go/cgo/bls) to build and link directly to the lib binaries.
+1. [Using gRPC](https://github.com/bls12_381-sign/go/grpc/bls) to communicate with our simple lib IPC server.
 
 ## Benchmarks
 
