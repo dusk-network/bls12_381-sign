@@ -17,9 +17,9 @@ schemas:
 ifeq (,$(wildcard ./tmp/protoc/bin/protoc))
 	make protoc
 endif
-	./tmp/protoc/bin/protoc --proto_path=./schema ./schema/bls12381sig.proto \
-		--go_opt=paths=source_relative \
-		--go_out=plugins=grpc:./go/grpc/bls/; \
+	./tmp/protoc/bin/protoc --proto_path=./schema ./schema/bls12381sig.proto --go-grpc_opt=paths=source_relative \
+		--go-grpc_out=require_unimplemented_servers=false:./go/grpc/bls --go_opt=paths=source_relative \
+		--go_out=./go/grpc/bls/
 
 lib:
 	cargo build --workspace --manifest-path rust/Cargo.toml --exclude dusk-bls12_381-sign-ipc --release
@@ -44,6 +44,9 @@ bench: build
 clean:
 	rm -fv /tmp/bls12381svc*
 	rm -rf ./tmp
+	cargo clean --manifest-path rust/Cargo.toml --release
+	(cd go/cgo/bls && go clean)
+	(cd go/grpc/bls && go clean)
 
 protoc:
 	curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.14.0/$(protoc)
@@ -51,8 +54,8 @@ protoc:
 	unzip -o $(protoc) -d ./tmp/protoc bin/protoc
 	unzip -o $(protoc) -d ./tmp/protoc 'include/*'
 	rm -f $(protoc)
-	go install google.golang.org/grpc@v1.42.0
-	go install github.com/golang/protobuf/protoc-gen-go@latest
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1
 
 memprofile:
 	go test -run=. -bench=. -benchtime=5s -count 1 -benchmem -cpuprofile=cpu.out -memprofile=mem.out -trace=trace.out ./... | tee bench.txt

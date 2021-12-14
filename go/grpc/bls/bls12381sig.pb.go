@@ -13,10 +13,6 @@
 package bls
 
 import (
-	context "context"
-	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -640,6 +636,61 @@ func (x *AggregatePKRequest) GetKeys() [][]byte {
 	return nil
 }
 
+type AggregateSigRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Signature  []byte   `protobuf:"bytes,1,opt,name=Signature,proto3" json:"Signature,omitempty"`
+	Signatures [][]byte `protobuf:"bytes,2,rep,name=Signatures,proto3" json:"Signatures,omitempty"`
+}
+
+func (x *AggregateSigRequest) Reset() {
+	*x = AggregateSigRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bls12381sig_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AggregateSigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AggregateSigRequest) ProtoMessage() {}
+
+func (x *AggregateSigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bls12381sig_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AggregateSigRequest.ProtoReflect.Descriptor instead.
+func (*AggregateSigRequest) Descriptor() ([]byte, []int) {
+	return file_bls12381sig_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *AggregateSigRequest) GetSignature() []byte {
+	if x != nil {
+		return x.Signature
+	}
+	return nil
+}
+
+func (x *AggregateSigRequest) GetSignatures() [][]byte {
+	if x != nil {
+		return x.Signatures
+	}
+	return nil
+}
+
 type AggregateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -654,7 +705,7 @@ type AggregateResponse struct {
 func (x *AggregateResponse) Reset() {
 	*x = AggregateResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bls12381sig_proto_msgTypes[9]
+		mi := &file_bls12381sig_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -667,7 +718,7 @@ func (x *AggregateResponse) String() string {
 func (*AggregateResponse) ProtoMessage() {}
 
 func (x *AggregateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_bls12381sig_proto_msgTypes[9]
+	mi := &file_bls12381sig_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -680,7 +731,7 @@ func (x *AggregateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AggregateResponse.ProtoReflect.Descriptor instead.
 func (*AggregateResponse) Descriptor() ([]byte, []int) {
-	return file_bls12381sig_proto_rawDescGZIP(), []int{9}
+	return file_bls12381sig_proto_rawDescGZIP(), []int{10}
 }
 
 func (m *AggregateResponse) GetAgg() isAggregateResponse_Agg {
@@ -719,61 +770,6 @@ type AggregateResponse_Error struct {
 func (*AggregateResponse_Code) isAggregateResponse_Agg() {}
 
 func (*AggregateResponse_Error) isAggregateResponse_Agg() {}
-
-type AggregateSigRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Signature  []byte   `protobuf:"bytes,1,opt,name=Signature,proto3" json:"Signature,omitempty"`
-	Signatures [][]byte `protobuf:"bytes,2,rep,name=Signatures,proto3" json:"Signatures,omitempty"`
-}
-
-func (x *AggregateSigRequest) Reset() {
-	*x = AggregateSigRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_bls12381sig_proto_msgTypes[10]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *AggregateSigRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AggregateSigRequest) ProtoMessage() {}
-
-func (x *AggregateSigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_bls12381sig_proto_msgTypes[10]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AggregateSigRequest.ProtoReflect.Descriptor instead.
-func (*AggregateSigRequest) Descriptor() ([]byte, []int) {
-	return file_bls12381sig_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *AggregateSigRequest) GetSignature() []byte {
-	if x != nil {
-		return x.Signature
-	}
-	return nil
-}
-
-func (x *AggregateSigRequest) GetSignatures() [][]byte {
-	if x != nil {
-		return x.Signatures
-	}
-	return nil
-}
 
 var File_bls12381sig_proto protoreflect.FileDescriptor
 
@@ -822,17 +818,17 @@ var file_bls12381sig_proto_rawDesc = []byte{
 	0x74, 0x65, 0x50, 0x4b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x41,
 	0x50, 0x4b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x03, 0x41, 0x50, 0x4b, 0x12, 0x12, 0x0a,
 	0x04, 0x4b, 0x65, 0x79, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0c, 0x52, 0x04, 0x4b, 0x65, 0x79,
-	0x73, 0x22, 0x57, 0x0a, 0x11, 0x41, 0x67, 0x67, 0x72, 0x65, 0x67, 0x61, 0x74, 0x65, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x0c, 0x48, 0x00, 0x52, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x25, 0x0a, 0x05,
-	0x45, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0d, 0x2e, 0x73, 0x69,
-	0x67, 0x6e, 0x65, 0x72, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x48, 0x00, 0x52, 0x05, 0x45, 0x72,
-	0x72, 0x6f, 0x72, 0x42, 0x05, 0x0a, 0x03, 0x61, 0x67, 0x67, 0x22, 0x53, 0x0a, 0x13, 0x41, 0x67,
-	0x67, 0x72, 0x65, 0x67, 0x61, 0x74, 0x65, 0x53, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x12, 0x1c, 0x0a, 0x09, 0x53, 0x69, 0x67, 0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x0c, 0x52, 0x09, 0x53, 0x69, 0x67, 0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x12,
-	0x1e, 0x0a, 0x0a, 0x53, 0x69, 0x67, 0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x73, 0x18, 0x02, 0x20,
-	0x03, 0x28, 0x0c, 0x52, 0x0a, 0x53, 0x69, 0x67, 0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x73, 0x2a,
+	0x73, 0x22, 0x53, 0x0a, 0x13, 0x41, 0x67, 0x67, 0x72, 0x65, 0x67, 0x61, 0x74, 0x65, 0x53, 0x69,
+	0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x53, 0x69, 0x67, 0x6e,
+	0x61, 0x74, 0x75, 0x72, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x09, 0x53, 0x69, 0x67,
+	0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x53, 0x69, 0x67, 0x6e, 0x61, 0x74,
+	0x75, 0x72, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0c, 0x52, 0x0a, 0x53, 0x69, 0x67, 0x6e,
+	0x61, 0x74, 0x75, 0x72, 0x65, 0x73, 0x22, 0x57, 0x0a, 0x11, 0x41, 0x67, 0x67, 0x72, 0x65, 0x67,
+	0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x04, 0x43,
+	0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x48, 0x00, 0x52, 0x04, 0x43, 0x6f, 0x64,
+	0x65, 0x12, 0x25, 0x0a, 0x05, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e,
+	0x32, 0x0d, 0x2e, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x72, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x48,
+	0x00, 0x52, 0x05, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x42, 0x05, 0x0a, 0x03, 0x61, 0x67, 0x67, 0x2a,
 	0x48, 0x0a, 0x05, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x15, 0x0a, 0x11, 0x42, 0x4c, 0x53, 0x5f,
 	0x49, 0x4e, 0x56, 0x41, 0x4c, 0x49, 0x44, 0x5f, 0x42, 0x59, 0x54, 0x45, 0x53, 0x10, 0x00, 0x12,
 	0x1b, 0x0a, 0x17, 0x42, 0x4c, 0x53, 0x5f, 0x56, 0x45, 0x52, 0x49, 0x46, 0x49, 0x43, 0x41, 0x54,
@@ -862,12 +858,11 @@ var file_bls12381sig_proto_rawDesc = []byte{
 	0x53, 0x69, 0x67, 0x12, 0x1b, 0x2e, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x72, 0x2e, 0x41, 0x67, 0x67,
 	0x72, 0x65, 0x67, 0x61, 0x74, 0x65, 0x53, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
 	0x1a, 0x19, 0x2e, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x72, 0x2e, 0x41, 0x67, 0x67, 0x72, 0x65, 0x67,
-	0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x3e, 0x5a, 0x3c, 0x67,
+	0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x2f, 0x5a, 0x2d, 0x67,
 	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x64, 0x75, 0x73, 0x6b, 0x2d, 0x6e,
 	0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x2f, 0x62, 0x6c, 0x73, 0x31, 0x32, 0x5f, 0x33, 0x38, 0x31,
-	0x2d, 0x73, 0x69, 0x67, 0x6e, 0x2f, 0x62, 0x6c, 0x73, 0x31, 0x32, 0x5f, 0x33, 0x38, 0x31, 0x2d,
-	0x73, 0x69, 0x67, 0x6e, 0x2d, 0x67, 0x6f, 0x2f, 0x62, 0x6c, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x2d, 0x73, 0x69, 0x67, 0x6e, 0x2f, 0x67, 0x6f, 0x2f, 0x62, 0x6c, 0x73, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -895,8 +890,8 @@ var file_bls12381sig_proto_goTypes = []interface{}{
 	(*CreateAPKRequest)(nil),     // 7: signer.CreateAPKRequest
 	(*CreateAPKResponse)(nil),    // 8: signer.CreateAPKResponse
 	(*AggregatePKRequest)(nil),   // 9: signer.AggregatePKRequest
-	(*AggregateResponse)(nil),    // 10: signer.AggregateResponse
-	(*AggregateSigRequest)(nil),  // 11: signer.AggregateSigRequest
+	(*AggregateSigRequest)(nil),  // 10: signer.AggregateSigRequest
+	(*AggregateResponse)(nil),    // 11: signer.AggregateResponse
 }
 var file_bls12381sig_proto_depIdxs = []int32{
 	0,  // 0: signer.SignResponse.Error:type_name -> signer.Error
@@ -908,13 +903,13 @@ var file_bls12381sig_proto_depIdxs = []int32{
 	5,  // 6: signer.Signer.Verify:input_type -> signer.VerifyRequest
 	7,  // 7: signer.Signer.CreateAPK:input_type -> signer.CreateAPKRequest
 	9,  // 8: signer.Signer.AggregatePK:input_type -> signer.AggregatePKRequest
-	11, // 9: signer.Signer.AggregateSig:input_type -> signer.AggregateSigRequest
+	10, // 9: signer.Signer.AggregateSig:input_type -> signer.AggregateSigRequest
 	2,  // 10: signer.Signer.GenerateKeys:output_type -> signer.GenerateKeysResponse
 	4,  // 11: signer.Signer.Sign:output_type -> signer.SignResponse
 	6,  // 12: signer.Signer.Verify:output_type -> signer.VerifyResponse
 	8,  // 13: signer.Signer.CreateAPK:output_type -> signer.CreateAPKResponse
-	10, // 14: signer.Signer.AggregatePK:output_type -> signer.AggregateResponse
-	10, // 15: signer.Signer.AggregateSig:output_type -> signer.AggregateResponse
+	11, // 14: signer.Signer.AggregatePK:output_type -> signer.AggregateResponse
+	11, // 15: signer.Signer.AggregateSig:output_type -> signer.AggregateResponse
 	10, // [10:16] is the sub-list for method output_type
 	4,  // [4:10] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
@@ -1037,7 +1032,7 @@ func file_bls12381sig_proto_init() {
 			}
 		}
 		file_bls12381sig_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AggregateResponse); i {
+			switch v := v.(*AggregateSigRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1049,7 +1044,7 @@ func file_bls12381sig_proto_init() {
 			}
 		}
 		file_bls12381sig_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AggregateSigRequest); i {
+			switch v := v.(*AggregateResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1073,7 +1068,7 @@ func file_bls12381sig_proto_init() {
 		(*CreateAPKResponse_APK)(nil),
 		(*CreateAPKResponse_Error)(nil),
 	}
-	file_bls12381sig_proto_msgTypes[9].OneofWrappers = []interface{}{
+	file_bls12381sig_proto_msgTypes[10].OneofWrappers = []interface{}{
 		(*AggregateResponse_Code)(nil),
 		(*AggregateResponse_Error)(nil),
 	}
@@ -1096,264 +1091,4 @@ func file_bls12381sig_proto_init() {
 	file_bls12381sig_proto_rawDesc = nil
 	file_bls12381sig_proto_goTypes = nil
 	file_bls12381sig_proto_depIdxs = nil
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// SignerClient is the client API for Signer service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type SignerClient interface {
-	GenerateKeys(ctx context.Context, in *GenerateKeysRequest, opts ...grpc.CallOption) (*GenerateKeysResponse, error)
-	Sign(ctx context.Context, in *SignRequest, opts ...grpc.CallOption) (*SignResponse, error)
-	Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error)
-	CreateAPK(ctx context.Context, in *CreateAPKRequest, opts ...grpc.CallOption) (*CreateAPKResponse, error)
-	AggregatePK(ctx context.Context, in *AggregatePKRequest, opts ...grpc.CallOption) (*AggregateResponse, error)
-	AggregateSig(ctx context.Context, in *AggregateSigRequest, opts ...grpc.CallOption) (*AggregateResponse, error)
-}
-
-type signerClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewSignerClient(cc grpc.ClientConnInterface) SignerClient {
-	return &signerClient{cc}
-}
-
-func (c *signerClient) GenerateKeys(ctx context.Context, in *GenerateKeysRequest, opts ...grpc.CallOption) (*GenerateKeysResponse, error) {
-	out := new(GenerateKeysResponse)
-	err := c.cc.Invoke(ctx, "/signer.Signer/GenerateKeys", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *signerClient) Sign(ctx context.Context, in *SignRequest, opts ...grpc.CallOption) (*SignResponse, error) {
-	out := new(SignResponse)
-	err := c.cc.Invoke(ctx, "/signer.Signer/Sign", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *signerClient) Verify(ctx context.Context, in *VerifyRequest, opts ...grpc.CallOption) (*VerifyResponse, error) {
-	out := new(VerifyResponse)
-	err := c.cc.Invoke(ctx, "/signer.Signer/Verify", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *signerClient) CreateAPK(ctx context.Context, in *CreateAPKRequest, opts ...grpc.CallOption) (*CreateAPKResponse, error) {
-	out := new(CreateAPKResponse)
-	err := c.cc.Invoke(ctx, "/signer.Signer/CreateAPK", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *signerClient) AggregatePK(ctx context.Context, in *AggregatePKRequest, opts ...grpc.CallOption) (*AggregateResponse, error) {
-	out := new(AggregateResponse)
-	err := c.cc.Invoke(ctx, "/signer.Signer/AggregatePK", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *signerClient) AggregateSig(ctx context.Context, in *AggregateSigRequest, opts ...grpc.CallOption) (*AggregateResponse, error) {
-	out := new(AggregateResponse)
-	err := c.cc.Invoke(ctx, "/signer.Signer/AggregateSig", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// SignerServer is the server API for Signer service.
-type SignerServer interface {
-	GenerateKeys(context.Context, *GenerateKeysRequest) (*GenerateKeysResponse, error)
-	Sign(context.Context, *SignRequest) (*SignResponse, error)
-	Verify(context.Context, *VerifyRequest) (*VerifyResponse, error)
-	CreateAPK(context.Context, *CreateAPKRequest) (*CreateAPKResponse, error)
-	AggregatePK(context.Context, *AggregatePKRequest) (*AggregateResponse, error)
-	AggregateSig(context.Context, *AggregateSigRequest) (*AggregateResponse, error)
-}
-
-// UnimplementedSignerServer can be embedded to have forward compatible implementations.
-type UnimplementedSignerServer struct {
-}
-
-func (*UnimplementedSignerServer) GenerateKeys(context.Context, *GenerateKeysRequest) (*GenerateKeysResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GenerateKeys not implemented")
-}
-func (*UnimplementedSignerServer) Sign(context.Context, *SignRequest) (*SignResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Sign not implemented")
-}
-func (*UnimplementedSignerServer) Verify(context.Context, *VerifyRequest) (*VerifyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Verify not implemented")
-}
-func (*UnimplementedSignerServer) CreateAPK(context.Context, *CreateAPKRequest) (*CreateAPKResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAPK not implemented")
-}
-func (*UnimplementedSignerServer) AggregatePK(context.Context, *AggregatePKRequest) (*AggregateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AggregatePK not implemented")
-}
-func (*UnimplementedSignerServer) AggregateSig(context.Context, *AggregateSigRequest) (*AggregateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AggregateSig not implemented")
-}
-
-func RegisterSignerServer(s *grpc.Server, srv SignerServer) {
-	s.RegisterService(&_Signer_serviceDesc, srv)
-}
-
-func _Signer_GenerateKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GenerateKeysRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SignerServer).GenerateKeys(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/signer.Signer/GenerateKeys",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SignerServer).GenerateKeys(ctx, req.(*GenerateKeysRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Signer_Sign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SignRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SignerServer).Sign(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/signer.Signer/Sign",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SignerServer).Sign(ctx, req.(*SignRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Signer_Verify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(VerifyRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SignerServer).Verify(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/signer.Signer/Verify",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SignerServer).Verify(ctx, req.(*VerifyRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Signer_CreateAPK_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAPKRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SignerServer).CreateAPK(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/signer.Signer/CreateAPK",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SignerServer).CreateAPK(ctx, req.(*CreateAPKRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Signer_AggregatePK_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AggregatePKRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SignerServer).AggregatePK(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/signer.Signer/AggregatePK",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SignerServer).AggregatePK(ctx, req.(*AggregatePKRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Signer_AggregateSig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AggregateSigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SignerServer).AggregateSig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/signer.Signer/AggregateSig",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SignerServer).AggregateSig(ctx, req.(*AggregateSigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _Signer_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "signer.Signer",
-	HandlerType: (*SignerServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GenerateKeys",
-			Handler:    _Signer_GenerateKeys_Handler,
-		},
-		{
-			MethodName: "Sign",
-			Handler:    _Signer_Sign_Handler,
-		},
-		{
-			MethodName: "Verify",
-			Handler:    _Signer_Verify_Handler,
-		},
-		{
-			MethodName: "CreateAPK",
-			Handler:    _Signer_CreateAPK_Handler,
-		},
-		{
-			MethodName: "AggregatePK",
-			Handler:    _Signer_AggregatePK_Handler,
-		},
-		{
-			MethodName: "AggregateSig",
-			Handler:    _Signer_AggregateSig_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "bls12381sig.proto",
 }
