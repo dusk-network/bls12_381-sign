@@ -11,9 +11,9 @@ protoc = protoc-3.14.0-osx-x86_64.zip
 platform = macos-latest
 endif
 
-all: schema lib build test
+all: schemas lib build test
 
-schema:
+schemas:
 ifeq (,$(wildcard ./tmp/protoc/bin/protoc))
 	make protoc
 endif
@@ -29,7 +29,7 @@ grpc:
 	cargo build --workspace --manifest-path rust/Cargo.toml --release
 	cp rust/target/release/bls12381svc ./go/grpc/bls/bls12381svc_$(platform)
 
-build: schema lib grpc
+build: schemas lib grpc
 	(cd go/cgo/bls && go build)
 	(cd go/grpc/bls && go build)
 
