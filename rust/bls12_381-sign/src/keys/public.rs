@@ -4,20 +4,21 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::{
-    hash::{h0, h1},
-    Signature,
-};
+use crate::hash::{h0, h1};
+use crate::{Error, SecretKey, Signature};
 
-use crate::{Error, SecretKey};
 use dusk_bls12_381::G2Affine;
 use dusk_bytes::Serializable;
+
+#[cfg(feature = "canon")]
+use canonical_derive::Canon;
 
 /// A BLS public key, holding a BLS12-381 G2 element inside.
 /// The G2 element is constructed by multiplying a [`SecretKey`]
 /// by `g2` (the base point of the G2 group).
 /// Can be used for signature verification.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "canon", derive(Canon))]
 pub struct PublicKey(pub(crate) G2Affine);
 
 impl Serializable<96> for PublicKey {

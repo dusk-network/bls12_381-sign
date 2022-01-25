@@ -11,9 +11,13 @@ use dusk_bls12_381::BlsScalar;
 use dusk_bytes::Serializable;
 use rand_core::{CryptoRng, RngCore};
 
+#[cfg(feature = "canon")]
+use canonical_derive::Canon;
+
 /// A BLS secret key, holding a BLS12-381 scalar inside.
 /// Can be used for signing messages.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "canon", derive(Canon))]
 pub struct SecretKey(pub(crate) BlsScalar);
 
 impl From<BlsScalar> for SecretKey {

@@ -5,15 +5,19 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use crate::{hash::h1, Signature};
-
 use crate::{Error, PublicKey};
+
 use dusk_bytes::Serializable;
+
+#[cfg(feature = "canon")]
+use canonical_derive::Canon;
 
 /// Aggregated form of a BLS public key.
 /// The public keys are aggregated in a rogue-key attack
 /// resistant manner, by using the hash function defined
 /// in the modified version of BLS.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "canon", derive(Canon))]
 pub struct APK(PublicKey);
 
 impl Serializable<96> for APK {
