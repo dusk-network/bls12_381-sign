@@ -23,7 +23,7 @@ endif
 
 lib:
 	cargo build --workspace --manifest-path rust/Cargo.toml --exclude dusk-bls12_381-sign-ipc --release
-	cp rust/target/release/libdusk_bls12_381_sign.a ./go/cgo/bls/libdusk_bls12_381_sign_$(platform).a
+	cp rust/target/release/libdusk_bls12_381_sign_ffi.a ./go/cgo/bls/libdusk_bls12_381_sign_$(platform).a
 
 grpc:
 	cargo build --workspace --manifest-path rust/Cargo.toml --release

@@ -34,7 +34,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --manifest-path rust/Cargo.toml --workspace --exclude dusk-bls12_381-sign-ipc --no-default-features --target thumbv6m-none-eabi
+          args: --manifest-path rust/bls12_381-sign/Cargo.toml --no-default-features --target thumbv6m-none-eabi
 
   test_nightly:
     name: Nightly tests

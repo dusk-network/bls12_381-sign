@@ -7,17 +7,22 @@
 //! Defines the hash functions needed for the BLS signature scheme.
 
 use crate::PublicKey;
-use blake2::{Blake2b, Digest};
-use core::convert::TryInto;
+
+use blake2::digest::consts::U32;
+use blake2::Digest;
 use dusk_bls12_381::{BlsScalar, G1Affine};
 use dusk_bytes::Serializable;
 
+type Blake2b = blake2::Blake2b<U32>;
+
 /// Hash an arbitrary slice of bytes into a [`BlsScalar`]
 fn h(msg: &[u8]) -> BlsScalar {
-    let hash = Blake2b::digest(msg);
-    BlsScalar::from_bytes_wide(
-        hash.as_slice().try_into().expect("64 bytes expected"),
-    )
+    let mut digest: [u8; BlsScalar::SIZE] = Blake2b::digest(msg).into();
+
+    // Truncate the contract id to fit bls
+    digest[31] &= 0x3f;
+
+    BlsScalar::from_bytes(&digest).unwrap_or_default()
 }
 
 /// h0 is the hash-to-curve-point function.

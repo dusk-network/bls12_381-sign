@@ -4,13 +4,14 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-#![cfg(feature = "std")]
 use crate::{Error, PublicKey, SecretKey, Signature, APK};
 
 use dusk_bls12_381::G2Affine;
 use dusk_bytes::Serializable;
 use libc::{c_int, c_uchar, size_t};
-use std::{ptr, slice};
+
+use alloc::vec::Vec;
+use core::{ptr, slice};
 
 pub const SK_SIZE: usize = SecretKey::SIZE;
 pub const SIG_SIZE: usize = Signature::SIZE;

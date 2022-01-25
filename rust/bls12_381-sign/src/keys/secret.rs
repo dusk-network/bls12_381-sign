@@ -4,16 +4,12 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::Error;
+use crate::hash::{h0, h1};
+use crate::{Error, PublicKey, Signature};
+
 use dusk_bls12_381::BlsScalar;
 use dusk_bytes::Serializable;
 use rand_core::{CryptoRng, RngCore};
-
-#[cfg(feature = "std")]
-use crate::{
-    hash::{h0, h1},
-    PublicKey, Signature,
-};
 
 /// A BLS secret key, holding a BLS12-381 scalar inside.
 /// Can be used for signing messages.
@@ -60,7 +56,6 @@ impl Serializable<32> for SecretKey {
     }
 }
 
-#[cfg(feature = "std")]
 impl SecretKey {
     /// Sign a message, producing a [`Signature`].
     /// The signature produced is vulnerable to a rogue-key attack.
