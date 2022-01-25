@@ -4,7 +4,6 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-#[cfg(feature = "std")]
 use crate::{
     hash::{h0, h1},
     Signature,
@@ -44,7 +43,6 @@ impl From<&SecretKey> for PublicKey {
     }
 }
 
-#[cfg(feature = "std")]
 impl PublicKey {
     /// Verify a [`Signature`] by comparing the results of the two pairing
     /// operations: e(sig, g_2) == e(Hₒ(m), pk).

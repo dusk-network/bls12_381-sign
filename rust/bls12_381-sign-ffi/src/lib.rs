@@ -4,13 +4,11 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::{Error, PublicKey, SecretKey, Signature, APK};
-
 use dusk_bls12_381::G2Affine;
+use dusk_bls12_381_sign::{Error, PublicKey, SecretKey, Signature, APK};
 use dusk_bytes::Serializable;
 use libc::{c_int, c_uchar, size_t};
 
-use alloc::vec::Vec;
 use core::{ptr, slice};
 
 pub const SK_SIZE: usize = SecretKey::SIZE;
@@ -18,22 +16,16 @@ pub const SIG_SIZE: usize = Signature::SIZE;
 pub const PK_SIZE: usize = PublicKey::SIZE;
 pub const PK_RAW_SIZE: usize = G2Affine::RAW_SIZE;
 
-const BLS_OK: c_int = 0;
-
-impl From<Error> for c_int {
-    fn from(e: Error) -> Self {
-        match e {
-            Error::BytesError(_) => 1,
-            Error::InvalidSignature => 2,
-        }
-    }
-}
+pub const RES_OK: c_int = 0;
+pub const RES_BYTES_ERROR: c_int = 1;
+pub const RES_INVALID_SIGNATURE: c_int = 2;
 
 macro_rules! unwrap_or_bail {
     ( $e: expr ) => {
         match $e {
             Ok(v) => v,
-            Err(e) => return e.into(),
+            Err(Error::BytesError(_)) => return RES_BYTES_ERROR,
+            Err(Error::InvalidSignature) => return RES_INVALID_SIGNATURE,
         }
     };
 }
@@ -84,7 +76,7 @@ pub unsafe extern "C" fn sign(
         sig_ptr,
         SIG_SIZE,
     );
-    BLS_OK
+    RES_OK
 }
 
 #[no_mangle]
@@ -100,8 +92,8 @@ pub unsafe extern "C" fn verify(
     let msg = slice::from_raw_parts(msg_ptr, msg_len);
 
     match apk.verify(&sig, msg).is_ok() {
-        true => BLS_OK,
-        false => Error::InvalidSignature.into(),
+        true => RES_OK,
+        false => RES_INVALID_SIGNATURE,
     }
 }
 
@@ -114,7 +106,7 @@ pub unsafe extern "C" fn create_apk(
 
     let apk = APK::from(&pk);
     ptr::copy_nonoverlapping(&apk.to_bytes()[0] as *const u8, apk_ptr, PK_SIZE);
-    BLS_OK
+    RES_OK
 }
 
 #[no_mangle]
@@ -139,7 +131,7 @@ pub unsafe extern "C" fn aggregate_pk(
     let pks = unwrap_or_bail!(pks);
     apk.aggregate(&pks);
     ptr::copy_nonoverlapping(&apk.to_bytes()[0] as *const u8, ret_ptr, PK_SIZE);
-    BLS_OK
+    RES_OK
 }
 
 #[no_mangle]
@@ -168,7 +160,7 @@ pub unsafe extern "C" fn aggregate_sig(
         ret_ptr,
         SIG_SIZE,
     );
-    BLS_OK
+    RES_OK
 }
 
 #[no_mangle]
@@ -179,7 +171,7 @@ pub unsafe extern "C" fn apk_to_raw(
     let apk = unwrap_or_bail!(APK::from_bytes(&*apk_ptr));
     let apk_raw = apk.to_raw_bytes();
     ptr::copy_nonoverlapping(&apk_raw[0] as *const u8, ret_ptr, PK_RAW_SIZE);
-    BLS_OK
+    RES_OK
 }
 
 #[no_mangle]
@@ -190,7 +182,7 @@ pub unsafe extern "C" fn pk_to_raw(
     let apk = unwrap_or_bail!(PublicKey::from_bytes(&*apk_ptr));
     let apk_raw = apk.to_raw_bytes();
     ptr::copy_nonoverlapping(&apk_raw[0] as *const u8, ret_ptr, PK_RAW_SIZE);
-    BLS_OK
+    RES_OK
 }
 
 #[no_mangle]
