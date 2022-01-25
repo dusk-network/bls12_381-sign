@@ -5,7 +5,7 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use crate::{hash::h1, Signature};
-use crate::{Error, PublicKey};
+use crate::{Error, PublicKey, SecretKey};
 
 use dusk_bytes::Serializable;
 
@@ -37,6 +37,14 @@ impl From<&PublicKey> for APK {
         let t = h1(pk);
         let gx = pk.0 * t;
         Self(PublicKey(gx.into()))
+    }
+}
+
+impl From<&SecretKey> for APK {
+    fn from(sk: &SecretKey) -> Self {
+        let pk = PublicKey::from(sk);
+
+        Self::from(&pk)
     }
 }
 
