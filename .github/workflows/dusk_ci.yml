@@ -92,7 +92,7 @@ jobs:
         with:
           name: bls12_381_sign_${{ matrix.os }}
           path: |
-                go/cgo/bls/libdusk_bls12_381_sign_${{ matrix.os }}.a
+                go/cgo/bls/libdusk_bls12_381_sign_ffi_${{ matrix.os }}.a
       - name: Build Go Stuff
         run: make build
       - name: Test Go Stuff
