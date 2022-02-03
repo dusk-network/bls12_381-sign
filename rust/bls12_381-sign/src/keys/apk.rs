@@ -7,7 +7,7 @@
 use crate::{hash::h1, Signature};
 use crate::{Error, PublicKey, SecretKey};
 
-use dusk_bytes::Serializable;
+use dusk_bytes::{Error as DuskBytesError, Serializable};
 
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
@@ -21,13 +21,13 @@ use canonical_derive::Canon;
 pub struct APK(PublicKey);
 
 impl Serializable<96> for APK {
-    type Error = Error;
+    type Error = DuskBytesError;
 
     fn to_bytes(&self) -> [u8; Self::SIZE] {
         self.0.to_bytes()
     }
 
-    fn from_bytes(bytes: &[u8; Self::SIZE]) -> Result<Self, Error> {
+    fn from_bytes(bytes: &[u8; Self::SIZE]) -> Result<Self, Self::Error> {
         Ok(APK(PublicKey::from_bytes(bytes)?))
     }
 }

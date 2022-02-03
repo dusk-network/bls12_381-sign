@@ -8,7 +8,7 @@ use crate::hash::{h0, h1};
 use crate::{Error, SecretKey, Signature};
 
 use dusk_bls12_381::G2Affine;
-use dusk_bytes::Serializable;
+use dusk_bytes::{Error as DuskBytesError, Serializable};
 
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
@@ -22,13 +22,13 @@ use canonical_derive::Canon;
 pub struct PublicKey(pub(crate) G2Affine);
 
 impl Serializable<96> for PublicKey {
-    type Error = Error;
+    type Error = DuskBytesError;
 
     fn to_bytes(&self) -> [u8; Self::SIZE] {
         self.0.to_bytes()
     }
 
-    fn from_bytes(bytes: &[u8; Self::SIZE]) -> Result<Self, Error> {
+    fn from_bytes(bytes: &[u8; Self::SIZE]) -> Result<Self, Self::Error> {
         Ok(Self(G2Affine::from_bytes(bytes)?))
     }
 }
