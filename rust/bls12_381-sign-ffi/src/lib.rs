@@ -22,7 +22,7 @@ pub const RES_INVALID_SIGNATURE: c_int = 2;
 
 macro_rules! unwrap_or_bail {
     ( $e: expr ) => {
-        match $e {
+        match $e.map_err(|e| e.into()) {
             Ok(v) => v,
             Err(Error::BytesError(_)) => return RES_BYTES_ERROR,
             Err(Error::InvalidSignature) => return RES_INVALID_SIGNATURE,
@@ -119,7 +119,7 @@ pub unsafe extern "C" fn aggregate_pk(
     let mut apk = unwrap_or_bail!(APK::from_bytes(&*apk_ptr));
 
     let pk_slice = slice::from_raw_parts(pk_ptr, pk_len);
-    let pks: Result<Vec<PublicKey>, Error> = pk_slice
+    let pks: Result<Vec<PublicKey>, dusk_bytes::Error> = pk_slice
         .chunks(PK_SIZE)
         .map(|bytes| {
             let mut arr = [0u8; PK_SIZE];

@@ -5,10 +5,10 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use crate::hash::{h0, h1};
-use crate::{Error, PublicKey, Signature};
+use crate::{PublicKey, Signature};
 
 use dusk_bls12_381::BlsScalar;
-use dusk_bytes::Serializable;
+use dusk_bytes::{Error as DuskBytesError, Serializable};
 use rand_core::{CryptoRng, RngCore};
 
 #[cfg(feature = "canon")]
@@ -49,13 +49,13 @@ impl SecretKey {
 }
 
 impl Serializable<32> for SecretKey {
-    type Error = Error;
+    type Error = DuskBytesError;
 
     fn to_bytes(&self) -> [u8; Self::SIZE] {
         self.0.to_bytes()
     }
 
-    fn from_bytes(bytes: &[u8; Self::SIZE]) -> Result<Self, Error> {
+    fn from_bytes(bytes: &[u8; Self::SIZE]) -> Result<Self, Self::Error> {
         Ok(Self(BlsScalar::from_bytes(bytes)?))
     }
 }
