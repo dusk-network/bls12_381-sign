@@ -1,12 +1,12 @@
 #![feature(min_const_generics)]
 [package]
 name = "dusk-bls12_381-sign-ipc"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Loki <david@dusk.network>"]
 edition = "2018"
 
 [dependencies]
-dusk-bls12_381-sign = { version = "0.2.0-rc", path = "../bls12_381-sign" }
+dusk-bls12_381-sign = { version = "0.3.0-rc", path = "../bls12_381-sign" }
 async-stream = "0.3"
 dusk-bytes = "0.1"
 futures = { version = "0.3", default-features = false, features = ["alloc"] }
