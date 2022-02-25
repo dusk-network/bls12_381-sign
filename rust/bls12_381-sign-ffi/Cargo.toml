@@ -1,6 +1,6 @@
 [package]
 name = "dusk-bls12_381-sign-ffi"
-version = "0.1.0-rc.0"
+version = "0.2.0-rc.0"
 authors = [
     "Jules de Smit <julesdesmit@gmail.com>",
     "Matteo Ferretti <matteo@dusk.network>",
@@ -12,7 +12,7 @@ description = "Implementation of BLS signatures using the BLS12-381 curve"
 license = "MPL-2.0"
 
 [dependencies]
-dusk-bls12_381 = { version = "0.8", default-features = false }
+dusk-bls12_381 = { version = "0.9", default-features = false }
 dusk-bls12_381-sign = { path = "../bls12_381-sign" }
 dusk-bytes = "0.1"
 libc = "0.2"
