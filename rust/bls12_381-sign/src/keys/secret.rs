@@ -14,10 +14,14 @@ use rand_core::{CryptoRng, RngCore};
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
 
+#[cfg(feature = "rkyv-impl")]
+use rkyv::{Archive, Deserialize, Serialize};
+
 /// A BLS secret key, holding a BLS12-381 scalar inside.
 /// Can be used for signing messages.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "canon", derive(Canon))]
+#[cfg_attr(feature = "rkyv-impl", derive(Archive, Deserialize, Serialize))]
 pub struct SecretKey(pub(crate) BlsScalar);
 
 impl From<BlsScalar> for SecretKey {

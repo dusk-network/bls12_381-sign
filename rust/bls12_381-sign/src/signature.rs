@@ -12,9 +12,13 @@ use dusk_bytes::Serializable;
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
 
+#[cfg(feature = "rkyv-impl")]
+use rkyv::{Archive, Deserialize, Serialize};
+
 /// A BLS signature.
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
 #[cfg_attr(feature = "canon", derive(Canon))]
+#[cfg_attr(feature = "rkyv-impl", derive(Archive, Deserialize, Serialize))]
 pub struct Signature(pub(crate) G1Affine);
 
 impl Signature {
