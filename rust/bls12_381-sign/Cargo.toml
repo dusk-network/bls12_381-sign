@@ -1,6 +1,6 @@
 [package]
 name = "dusk-bls12_381-sign"
-version = "0.3.0-rc.0"
+version = "0.4.0-rc.0"
 authors = [
     "Jules de Smit <julesdesmit@gmail.com>",
     "Matteo Ferretti <matteo@dusk.network>",
