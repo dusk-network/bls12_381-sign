@@ -17,3 +17,13 @@ mod signature;
 pub use error::Error;
 pub use keys::{apk::APK, public::PublicKey, secret::SecretKey};
 pub use signature::Signature;
+
+#[cfg(feature = "rkyv-impl")]
+pub use crate::keys::{
+    apk::{APKResolver, ArchivedAPK},
+    public::{ArchivedPublicKey, PublicKeyResolver},
+    secret::{ArchivedSecretKey, SecretKeyResolver},
+};
+
+#[cfg(feature = "rkyv-impl")]
+pub use crate::signature::{ArchivedSignature, SignatureResolver};

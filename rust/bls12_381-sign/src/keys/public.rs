@@ -13,12 +13,16 @@ use dusk_bytes::{Error as DuskBytesError, Serializable};
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
 
+#[cfg(feature = "rkyv-impl")]
+use rkyv::{Archive, Deserialize, Serialize};
+
 /// A BLS public key, holding a BLS12-381 G2 element inside.
 /// The G2 element is constructed by multiplying a [`SecretKey`]
 /// by `g2` (the base point of the G2 group).
 /// Can be used for signature verification.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "canon", derive(Canon))]
+#[cfg_attr(feature = "rkyv-impl", derive(Archive, Deserialize, Serialize))]
 pub struct PublicKey(pub(crate) G2Affine);
 
 impl Serializable<96> for PublicKey {

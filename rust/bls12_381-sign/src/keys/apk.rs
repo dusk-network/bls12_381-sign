@@ -12,12 +12,16 @@ use dusk_bytes::{Error as DuskBytesError, Serializable};
 #[cfg(feature = "canon")]
 use canonical_derive::Canon;
 
+#[cfg(feature = "rkyv-impl")]
+use rkyv::{Archive, Deserialize, Serialize};
+
 /// Aggregated form of a BLS public key.
 /// The public keys are aggregated in a rogue-key attack
 /// resistant manner, by using the hash function defined
 /// in the modified version of BLS.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "canon", derive(Canon))]
+#[cfg_attr(feature = "rkyv-impl", derive(Archive, Deserialize, Serialize))]
 pub struct APK(PublicKey);
 
 impl Serializable<96> for APK {
