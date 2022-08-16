@@ -22,7 +22,11 @@ use rkyv::{Archive, Deserialize, Serialize};
 /// Can be used for signature verification.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "canon", derive(Canon))]
-#[cfg_attr(feature = "rkyv-impl", derive(Archive, Deserialize, Serialize))]
+#[cfg_attr(
+    feature = "rkyv-impl",
+    derive(Archive, Deserialize, Serialize),
+    archive_attr(derive(bytecheck::CheckBytes))
+)]
 pub struct PublicKey(pub(crate) G2Affine);
 
 impl Serializable<96> for PublicKey {
