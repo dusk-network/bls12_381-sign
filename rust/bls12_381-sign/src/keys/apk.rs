@@ -21,7 +21,11 @@ use rkyv::{Archive, Deserialize, Serialize};
 /// in the modified version of BLS.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "canon", derive(Canon))]
-#[cfg_attr(feature = "rkyv-impl", derive(Archive, Deserialize, Serialize))]
+#[cfg_attr(
+    feature = "rkyv-impl",
+    derive(Archive, Deserialize, Serialize),
+    archive_attr(derive(bytecheck::CheckBytes))
+)]
 pub struct APK(PublicKey);
 
 impl Serializable<96> for APK {
