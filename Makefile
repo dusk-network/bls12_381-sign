@@ -1,3 +1,35 @@
+ifeq ($(OS),Windows_NT)
+    # MACHINE = WIN32
+    # ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+    #     MACHINE += AMD64
+    # endif
+    # ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+    #     MACHINE += IA32
+    # endif
+else
+    # UNAME_S := $(shell uname -s)
+    # ifeq ($(UNAME_S),Linux)
+    #     MACHINE = LINUX
+    # endif
+    # ifeq ($(UNAME_S),Darwin)
+    #     MACHINE = OSX
+    # endif
+    UNAME_P := $(shell uname -p)
+    # ifeq ($(UNAME_P),x86_64)
+    #     MACHINE += AMD64
+    # endif
+    # ifneq ($(filter %86,$(UNAME_P)),)
+    #     arch += IA32
+    # endif
+    ifneq ($(filter arm%,$(UNAME_P)),)
+        arch += _arm
+    endif
+    ifneq ($(filter arm%,$(UNAME_P)),)
+        arg += CGO_ENABLED=1 GOARCH=arm64
+    endif
+endif
+
+
 OS := $(shell sh -c 'uname -s 2>/dev/null || echo linux' | tr "[:upper:]" "[:lower:]")
 PROTOC := $(shell which protoc)
 platform = ubuntu-latest
@@ -23,23 +55,23 @@ endif
 
 lib:
 	cargo build --workspace --manifest-path rust/Cargo.toml --exclude dusk-bls12_381-sign-ipc --release
-	cp rust/target/release/libdusk_bls12_381_sign_ffi.a ./go/cgo/bls/libdusk_bls12_381_sign_ffi_$(platform).a
+	cp rust/target/release/libdusk_bls12_381_sign_ffi.a ./go/cgo/bls/libdusk_bls12_381_sign_ffi_$(platform)${arch}.a
 
 grpc:
 	cargo build --workspace --manifest-path rust/Cargo.toml --release
 	cp rust/target/release/bls12381svc ./go/grpc/bls/bls12381svc_$(platform)
 
 build: schema lib grpc
-	(cd go/cgo/bls && go build)
-	(cd go/grpc/bls && go build)
+	(cd go/cgo/bls && $(arg) go build)
+	(cd go/grpc/bls && $(arg) go build)
 
 test: build
-	(cd go/cgo/bls && go test)
-	(cd go/grpc/bls && go test)
+	(cd go/cgo/bls && $(arg) go test)
+	(cd go/grpc/bls && $(arg) go test)
 
 bench: build
-	(cd go/cgo/bls && go test -v -bench=.)
-	(cd go/grpc/bls && go test -v -bench=.)
+	(cd go/cgo/bls && $(arg) go test -v -bench=.)
+	(cd go/grpc/bls && $(arg) go test -v -bench=.)
 
 clean:
 	rm -fv /tmp/bls12381svc*

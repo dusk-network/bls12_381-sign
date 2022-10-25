@@ -6,8 +6,10 @@
 
 package bls
 
-// #cgo darwin LDFLAGS: -L./ -ldusk_bls12_381_sign_ffi_macos-latest -ldl -lm
-// #cgo linux LDFLAGS: -L./ -ldusk_bls12_381_sign_ffi_ubuntu-latest -ldl -lm
+// #cgo darwin,!arm64 LDFLAGS: -L./ -ldusk_bls12_381_sign_ffi_macos-latest -ldl -lm
+// #cgo darwin,arm64 LDFLAGS: -L./ -ldusk_bls12_381_sign_ffi_macos-latest_arm -ldl -lm
+// #cgo linux,!arm64 LDFLAGS: -L./ -ldusk_bls12_381_sign_ffi_ubuntu-latest -ldl -lm
+// #cgo linux,arm64 LDFLAGS: -L./ -ldusk_bls12_381_sign_ffi_ubuntu-latest_arm -ldl -lm
 // #include "./libbls.h"
 import "C"
 
