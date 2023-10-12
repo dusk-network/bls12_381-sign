@@ -22,7 +22,8 @@ fn h(msg: &[u8]) -> BlsScalar {
     // Truncate the contract id to fit bls
     digest[31] &= 0x3f;
 
-    BlsScalar::from_bytes(&digest).unwrap_or_default()
+    let hash: Option<BlsScalar> = BlsScalar::from_bytes(&digest).into();
+    hash.unwrap_or_default()
 }
 
 /// h0 is the hash-to-curve-point function.

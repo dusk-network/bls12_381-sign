@@ -10,9 +10,6 @@ use crate::{Error, SecretKey, Signature};
 use dusk_bls12_381::G2Affine;
 use dusk_bytes::{Error as DuskBytesError, Serializable};
 
-#[cfg(feature = "canon")]
-use canonical_derive::Canon;
-
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{Archive, Deserialize, Serialize};
 
@@ -21,7 +18,6 @@ use rkyv::{Archive, Deserialize, Serialize};
 /// by `g2` (the base point of the G2 group).
 /// Can be used for signature verification.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "canon", derive(Canon))]
 #[cfg_attr(
     feature = "rkyv-impl",
     derive(Archive, Deserialize, Serialize),
