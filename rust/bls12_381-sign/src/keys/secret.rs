@@ -9,10 +9,8 @@ use crate::{PublicKey, Signature};
 
 use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{Error as DuskBytesError, Serializable};
+use ff::Field;
 use rand_core::{CryptoRng, RngCore};
-
-#[cfg(feature = "canon")]
-use canonical_derive::Canon;
 
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{Archive, Deserialize, Serialize};
@@ -20,7 +18,6 @@ use rkyv::{Archive, Deserialize, Serialize};
 /// A BLS secret key, holding a BLS12-381 scalar inside.
 /// Can be used for signing messages.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "canon", derive(Canon))]
 #[cfg_attr(
     feature = "rkyv-impl",
     derive(Archive, Deserialize, Serialize),
@@ -52,7 +49,7 @@ impl SecretKey {
     where
         T: RngCore + CryptoRng,
     {
-        Self(BlsScalar::random(rand))
+        Self(BlsScalar::random(&mut *rand))
     }
 }
 
@@ -64,7 +61,11 @@ impl Serializable<32> for SecretKey {
     }
 
     fn from_bytes(bytes: &[u8; Self::SIZE]) -> Result<Self, Self::Error> {
-        Ok(Self(BlsScalar::from_bytes(bytes)?))
+        let secret_key = match BlsScalar::from_bytes(bytes).into() {
+            Some(sk) => sk,
+            None => return Err(DuskBytesError::InvalidData),
+        };
+        Ok(Self(secret_key))
     }
 }
 

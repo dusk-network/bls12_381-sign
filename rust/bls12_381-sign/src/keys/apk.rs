@@ -9,9 +9,6 @@ use crate::{Error, PublicKey, SecretKey};
 
 use dusk_bytes::{Error as DuskBytesError, Serializable};
 
-#[cfg(feature = "canon")]
-use canonical_derive::Canon;
-
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{Archive, Deserialize, Serialize};
 
@@ -20,7 +17,6 @@ use rkyv::{Archive, Deserialize, Serialize};
 /// resistant manner, by using the hash function defined
 /// in the modified version of BLS.
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "canon", derive(Canon))]
 #[cfg_attr(
     feature = "rkyv-impl",
     derive(Archive, Deserialize, Serialize),
