@@ -1,7 +1,7 @@
 #![feature(min_const_generics)]
 [package]
 name = "dusk-bls12_381-sign-ipc"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Loki <david@dusk.network>"]
 edition = "2018"
 
