@@ -7,10 +7,14 @@
 use crate::{hash::h1, Signature};
 use crate::{Error, PublicKey, SecretKey};
 
+use dusk_bls12_381::G2Projective;
 use dusk_bytes::{Error as DuskBytesError, Serializable};
 
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{Archive, Deserialize, Serialize};
+
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
 
 /// Aggregated form of a BLS public key.
 /// The public keys are aggregated in a rogue-key attack
@@ -55,9 +59,16 @@ impl From<&SecretKey> for APK {
 impl APK {
     /// Aggregate a set of [`PublicKey`] into the [`APK`].
     pub fn aggregate(&mut self, pks: &[PublicKey]) {
-        (self.0).0 = pks.iter().fold((self.0).0, |acc, pk| {
-            (acc + dusk_bls12_381::G2Projective::from(pk.pk_t())).into()
-        });
+        #[cfg(feature = "parallel")]
+        let iter = pks.par_iter();
+
+        #[cfg(not(feature = "parallel"))]
+        let iter = pks.iter();
+
+        let sum: G2Projective = iter
+            .map(|pk| dusk_bls12_381::G2Projective::from(pk.pk_t()))
+            .sum();
+        (self.0).0 = ((self.0).0 + sum).into();
     }
 
     /// Verify a [`Signature`].

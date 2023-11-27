@@ -115,13 +115,15 @@ fn sign_verify_aggregated() {
 
     let mut apk = APK::from(&pk);
 
+    let mut pks = vec![];
     for _ in 0..10 {
         let sk = SecretKey::random(rng);
         let pk = PublicKey::from(&sk);
         let sig = sk.sign(&pk, &msg);
         agg_sig = agg_sig.aggregate(&[sig]);
-        apk.aggregate(&[pk]);
+        pks.push(pk)
     }
+    apk.aggregate(&pks[..]);
 
     assert!(apk.verify(&agg_sig, &msg).is_ok());
 }
