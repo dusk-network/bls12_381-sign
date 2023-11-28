@@ -54,6 +54,36 @@ mod benches {
         b.iter(|| apk.aggregate(&[pk]));
     }
 
+    #[bench]
+    fn bench_aggregate_pk_64_bulk(b: &mut Bencher) {
+        let sk = SecretKey::random(&mut OsRng);
+        let pk = PublicKey::from(&sk);
+        let mut apk = APK::from(&pk);
+        let mut pks = vec![];
+        for _ in 0..64 {
+            let sk = SecretKey::random(&mut OsRng);
+            let pk = PublicKey::from(&sk);
+            pks.push(pk)
+        }
+        let pks = &pks[..];
+        b.iter(|| apk.aggregate(pks));
+    }
+
+    #[bench]
+    fn bench_aggregate_pk_64_each(b: &mut Bencher) {
+        let sk = SecretKey::random(&mut OsRng);
+        let pk = PublicKey::from(&sk);
+        let mut apk = APK::from(&pk);
+        let mut pks = vec![];
+        for _ in 0..64 {
+            let sk = SecretKey::random(&mut OsRng);
+            let pk = PublicKey::from(&sk);
+            pks.push(pk)
+        }
+        let pks = &pks[..];
+        b.iter(|| pks.iter().for_each(|&p| apk.aggregate(&[p])));
+    }
+
     fn random_message() -> [u8; 100] {
         let mut msg = [0u8; 100];
         (&mut OsRng::default()).fill_bytes(&mut msg);
