@@ -1,6 +1,6 @@
 [package]
 name = "dusk-bls12_381-sign"
-version = "0.5.1-rc.0"
+version = "0.6.0"
 edition = "2021"
 description = "Implementation of BLS signatures using the BLS12-381 curve"
 license = "MPL-2.0"
