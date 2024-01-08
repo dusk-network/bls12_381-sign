@@ -5,6 +5,9 @@ edition = "2021"
 description = "Implementation of BLS signatures using the BLS12-381 curve"
 license = "MPL-2.0"
 
+[badges]
+maintanance = { status = "depracated" }
+
 [dependencies]
 blake2 = { version = "0.10", default-features = false }
 dusk-bls12_381 = { version = "0.13", default-features = false, features = ["alloc", "pairings"] }
